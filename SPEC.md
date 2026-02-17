@@ -64,15 +64,11 @@ The status, property, and incident screens should update in real time. The user 
 
 ## Future directions
 Some improvements we might make in the future:
-* More kinds of checks. E.g., making sure that certain domains/URLs redirect appropriately to expected targets
+* Other contact methods, e.g., SMS, Slack.
+* More sophisticated checks. E.g., making sure that certain domains/URLs redirect appropriately to expected targets; configurable intervals.
 * Handling of transient check failures. A network problem might be on the client side or server side, it may be transient or not. We may want to alert only after a few consecutive failures of this type (while still alerting immediately on clear failures).
 * A more sophisticated data model. E.g., different properties could alert different contacts; contacts could be organized into contact lists; different kinds of checks could be organized under each property, etc.
-* A more sophisticated workflow around incidents. Incidents could have an acknowledged state; they could alert until acknowledged; the alerts could escalate in a certain way. There could be written updates entered by the users. Etc.
-* Other contact methods, e.g., SMS, Slack
-* Automatic incident resolution after consecutive successful checks
-* Configurable check intervals (per-property or global)
-* Per-property contact lists (different properties alert different contacts)
-* Reordering properties on the status screen
-* Data retention policies for check logs
+* A more sophisticated workflow around incidents. Incidents could have an acknowledged state; they could alert until acknowledged; the alerts could escalate in a certain way. There could be written updates entered by the users. Incidents could auto-resolve if the site comes back up. Etc.
+* Data retention policies for check logs.
 
 To be clear, these are *future* directions: do not include any of the above in the MVP, and don't design ahead for them. But also, don't create an information architecture in the design, or a technical architecture in the code, that would preclude any of these or make them abnormally difficult.
