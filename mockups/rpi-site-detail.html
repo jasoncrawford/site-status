@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conference Site — Roots of Progress Site Status</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #FAF8F5;
+      color: #1A1A1A;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 15px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ---- Header ---- */
+    .header {
+      background-color: #FAF8F5;
+      border-bottom: 1px solid #E8E4DF;
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-brand {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: #1A1A1A;
+      letter-spacing: -0.01em;
+    }
+
+    .header-subtitle {
+      font-size: 14px;
+      color: #5C5C5C;
+      position: relative;
+      padding-left: 14px;
+    }
+
+    .header-subtitle::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 1px;
+      height: 18px;
+      background-color: #D0CBC4;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .header-link {
+      font-size: 14px;
+      color: #5C5C5C;
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .header-link:hover {
+      color: #1A1A1A;
+    }
+
+    /* ---- Main Content ---- */
+    .main {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 32px 24px 80px;
+    }
+
+    /* ---- Breadcrumb ---- */
+    .breadcrumb {
+      margin-bottom: 28px;
+    }
+
+    .breadcrumb a {
+      font-size: 14px;
+      color: #C4453C;
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .breadcrumb a:hover {
+      color: #a33a32;
+      text-decoration: underline;
+    }
+
+    /* ---- Site Heading ---- */
+    .site-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 40px;
+      gap: 24px;
+    }
+
+    .site-heading-left {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .site-name {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 32px;
+      font-weight: 700;
+      color: #1A1A1A;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+      margin-bottom: 6px;
+    }
+
+    .site-url {
+      font-size: 14px;
+      color: #5C5C5C;
+      margin-bottom: 12px;
+      word-break: break-all;
+    }
+
+    .site-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #C4453C;
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .status-dot--red {
+      background-color: #C4453C;
+    }
+
+    .status-dot--green {
+      background-color: #5A8A5A;
+    }
+
+    .status-dot--gray {
+      background-color: #A8A8A8;
+    }
+
+    .site-heading-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+      padding-top: 6px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 18px;
+      font-size: 14px;
+      font-family: inherit;
+      font-weight: 500;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-decoration: none;
+      line-height: 1.4;
+    }
+
+    .btn-default {
+      background-color: #6B806B;
+      color: #fff;
+      border: 1px solid #6B806B;
+    }
+
+    .btn-default:hover {
+      background-color: #5a6e5a;
+      border-color: #5a6e5a;
+    }
+
+    .btn-muted {
+      background-color: transparent;
+      color: #5C5C5C;
+      border: 1px solid #D0CBC4;
+    }
+
+    .btn-muted:hover {
+      color: #C4453C;
+      border-color: #C4453C;
+      background-color: #fdf5f4;
+    }
+
+    /* ---- Section ---- */
+    .section {
+      margin-bottom: 40px;
+    }
+
+    .section-title {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: #1A1A1A;
+      margin-bottom: 16px;
+      letter-spacing: -0.01em;
+    }
+
+    /* ---- Card ---- */
+    .card {
+      background-color: #fff;
+      border: 1px solid #E8E4DF;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    /* ---- Incidents ---- */
+    .incident-row {
+      display: flex;
+      align-items: flex-start;
+      padding: 16px 20px;
+      gap: 14px;
+      cursor: pointer;
+      transition: background-color 0.12s;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .incident-row:hover {
+      background-color: #FAF8F5;
+    }
+
+    .incident-row + .incident-row {
+      border-top: 1px solid #F0EEEA;
+    }
+
+    .incident-dot-col {
+      padding-top: 3px;
+      flex-shrink: 0;
+    }
+
+    .incident-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .incident-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    .incident-cause {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1A1A1A;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      padding: 2px 8px;
+      border-radius: 3px;
+      line-height: 1.5;
+      text-transform: uppercase;
+    }
+
+    .badge--open {
+      background-color: #fdecea;
+      color: #C4453C;
+    }
+
+    .badge--resolved {
+      background-color: #F2F0ED;
+      color: #807B74;
+    }
+
+    .incident-meta {
+      font-size: 13px;
+      color: #5C5C5C;
+      line-height: 1.45;
+    }
+
+    /* ---- Check Log Table ---- */
+    .check-log-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .check-log-table thead th {
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      color: #807B74;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 10px 20px;
+      border-bottom: 1px solid #E8E4DF;
+      background-color: #FDFCFB;
+    }
+
+    .check-log-table tbody tr {
+      transition: background-color 0.12s;
+    }
+
+    .check-log-table tbody tr:hover {
+      background-color: #FAF8F5;
+    }
+
+    .check-log-table tbody td {
+      padding: 9px 20px;
+      font-size: 14px;
+      border-bottom: 1px solid #F0EEEA;
+    }
+
+    .check-log-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .check-log-timestamp {
+      color: #5C5C5C;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .check-log-result {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .check-log-result .status-dot {
+      width: 7px;
+      height: 7px;
+    }
+
+    .result-text--pass {
+      color: #5A8A5A;
+      font-weight: 500;
+    }
+
+    .result-text--fail {
+      color: #C4453C;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <img src="../rpi-screenshots/rpi-logo.jpg" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover" />
+      <span class="header-brand">Roots of Progress</span>
+      <span class="header-subtitle">Site Status</span>
+    </div>
+    <nav class="header-right">
+      <a href="#" class="header-link">Settings</a>
+      <a href="#" class="header-link">Log out</a>
+    </nav>
+  </header>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+      <a href="#">&larr; All Sites</a>
+    </div>
+
+    <!-- Site Heading -->
+    <div class="site-heading">
+      <div class="site-heading-left">
+        <h1 class="site-name">Conference Site</h1>
+        <div class="site-url">https://conference.rootsofprogress.org</div>
+        <div class="site-status">
+          <span class="status-dot status-dot--red"></span>
+          Down
+        </div>
+      </div>
+      <div class="site-heading-actions">
+        <a href="#" class="btn btn-default">Edit</a>
+        <a href="#" class="btn btn-muted">Delete</a>
+      </div>
+    </div>
+
+    <!-- Incidents -->
+    <div class="section">
+      <h2 class="section-title">Incidents</h2>
+      <div class="card">
+
+        <!-- Incident 1 — Open -->
+        <a href="#" class="incident-row">
+          <div class="incident-dot-col">
+            <span class="status-dot status-dot--red"></span>
+          </div>
+          <div class="incident-content">
+            <div class="incident-header">
+              <span class="incident-cause">HTTP 503</span>
+              <span class="badge badge--open">Open</span>
+            </div>
+            <div class="incident-meta">Opened 23 minutes ago</div>
+          </div>
+        </a>
+
+        <!-- Incident 2 — Resolved -->
+        <a href="#" class="incident-row">
+          <div class="incident-dot-col">
+            <span class="status-dot status-dot--gray"></span>
+          </div>
+          <div class="incident-content">
+            <div class="incident-header">
+              <span class="incident-cause">HTTP 500</span>
+              <span class="badge badge--resolved">Resolved</span>
+            </div>
+            <div class="incident-meta">Feb 14, 2:30 PM &ndash; 3:15 PM (45 min)</div>
+          </div>
+        </a>
+
+        <!-- Incident 3 — Resolved -->
+        <a href="#" class="incident-row">
+          <div class="incident-dot-col">
+            <span class="status-dot status-dot--gray"></span>
+          </div>
+          <div class="incident-content">
+            <div class="incident-header">
+              <span class="incident-cause">Connection timeout</span>
+              <span class="badge badge--resolved">Resolved</span>
+            </div>
+            <div class="incident-meta">Feb 10, 9:00 AM &ndash; 9:20 AM (20 min)</div>
+          </div>
+        </a>
+
+      </div>
+    </div>
+
+    <!-- Check Log -->
+    <div class="section">
+      <h2 class="section-title">Check Log</h2>
+      <div class="card">
+        <table class="check-log-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="check-log-timestamp">Feb 17, 3:42 PM</td>
+              <td>
+                <div class="check-log-result">
+                  <span class="status-dot status-dot--red"></span>
+                  <span class="result-text--fail">HTTP 503</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="check-log-timestamp">Feb 17, 3:37 PM</td>
+              <td>
+                <div class="check-log-result">
+                  <span class="status-dot status-dot--red"></span>
+                  <span class="result-text--fail">HTTP 503</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="check-log-timestamp">Feb 17, 3:32 PM</td>
+              <td>
+                <div class="check-log-result">
+                  <span class="status-dot status-dot--red"></span>
+                  <span class="result-text--fail">HTTP 503</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="check-log-timestamp">Feb 17, 3:27 PM</td>
+              <td>
+                <div class="check-log-result">
+                  <span class="status-dot status-dot--red"></span>
+                  <span class="result-text--fail">HTTP 503</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="check-log-timestamp">Feb 17, 3:22 PM</td>
+              <td>
+                <div class="check-log-result">
+                  <span class="status-dot status-dot--red"></span>
+                  <span class="result-text--fail">HTTP 503</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="check-log-timestamp">Feb 17, 3:17 PM</td>
+              <td>
+                <div class="check-log-result">
+                  <span class="status-dot status-dot--green"></span>
+                  <span class="result-text--pass">HTTP 200 OK</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="check-log-timestamp">Feb 17, 3:12 PM</td>
+              <td>
+                <div class="check-log-result">
+                  <span class="status-dot status-dot--green"></span>
+                  <span class="result-text--pass">HTTP 200 OK</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="check-log-timestamp">Feb 17, 3:07 PM</td>
+              <td>
+                <div class="check-log-result">
+                  <span class="status-dot status-dot--green"></span>
+                  <span class="result-text--pass">HTTP 200 OK</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="check-log-timestamp">Feb 17, 3:02 PM</td>
+              <td>
+                <div class="check-log-result">
+                  <span class="status-dot status-dot--green"></span>
+                  <span class="result-text--pass">HTTP 200 OK</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="check-log-timestamp">Feb 17, 2:57 PM</td>
+              <td>
+                <div class="check-log-result">
+                  <span class="status-dot status-dot--green"></span>
+                  <span class="result-text--pass">HTTP 200 OK</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+</body>
+</html>

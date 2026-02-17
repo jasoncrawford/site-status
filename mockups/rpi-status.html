@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roots of Progress — Site Status</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #FAF8F5;
+      color: #1A1A1A;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    h1, h2, h3, h4 {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    a {
+      color: #C4453C;
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    a:hover {
+      color: #a33830;
+    }
+
+    /* ── Header ──────────────────────────────────────── */
+
+    .header {
+      background: #FAF8F5;
+      border-bottom: 1px solid #E8E4DF;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-brand-name {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      color: #6B806B;
+      letter-spacing: -0.01em;
+    }
+
+    .header-brand-sep {
+      width: 1px;
+      height: 16px;
+      background: #D4CFC9;
+      align-self: center;
+    }
+
+    .header-brand-subtitle {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: #5C5C5C;
+      letter-spacing: 0.02em;
+    }
+
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .header-nav a {
+      font-size: 13px;
+      color: #5C5C5C;
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .header-nav a:hover {
+      color: #C4453C;
+    }
+
+    .header-nav .separator {
+      width: 1px;
+      height: 14px;
+      background: #D4CFC9;
+    }
+
+    /* ── Main layout ─────────────────────────────────── */
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 36px 24px 80px;
+    }
+
+    /* ── Section headings ────────────────────────────── */
+
+    .section-heading {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: #1A1A1A;
+      margin-bottom: 16px;
+    }
+
+    .section + .section {
+      margin-top: 44px;
+    }
+
+    /* ── Open Incidents ──────────────────────────────── */
+
+    .incident-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .incident-card {
+      display: block;
+      background: #FFFFFF;
+      border: 1px solid #E8E4DF;
+      border-left: 3px solid #C4453C;
+      border-radius: 4px;
+      padding: 16px 20px;
+      text-decoration: none;
+      color: inherit;
+      transition: box-shadow 0.15s, border-color 0.15s;
+    }
+
+    .incident-card:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      border-color: #D4CFC9;
+      border-left-color: #C4453C;
+      color: inherit;
+    }
+
+    .incident-top {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .incident-site-name {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: #1A1A1A;
+    }
+
+    .incident-duration {
+      font-size: 13px;
+      font-weight: 600;
+      color: #C4453C;
+    }
+
+    .incident-details {
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .incident-error {
+      font-size: 12px;
+      font-weight: 600;
+      color: #5C5C5C;
+      background: #F3F0EC;
+      padding: 2px 8px;
+      border-radius: 3px;
+      letter-spacing: 0.01em;
+    }
+
+    .incident-url {
+      font-size: 13px;
+      color: #5C5C5C;
+    }
+
+    /* ── Sites Grid ──────────────────────────────────── */
+
+    .sites-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    @media (max-width: 740px) {
+      .sites-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .sites-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .site-card {
+      background: #FFFFFF;
+      border: 1px solid #E8E4DF;
+      border-radius: 4px;
+      padding: 16px 18px;
+      position: relative;
+      transition: box-shadow 0.15s, border-color 0.15s;
+      cursor: default;
+    }
+
+    .site-card:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      border-color: #D4CFC9;
+    }
+
+    .site-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .site-card-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .status-dot.up {
+      background: #5A8A5A;
+    }
+
+    .status-dot.down {
+      background: #C4453C;
+    }
+
+    .site-card-name {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: #1A1A1A;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .site-card-edit {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
+      color: #5C5C5C;
+      opacity: 0;
+      transition: opacity 0.15s, background 0.15s, color 0.15s;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    .site-card:hover .site-card-edit {
+      opacity: 1;
+    }
+
+    .site-card-edit:hover {
+      background: #F3F0EC;
+      color: #C4453C;
+    }
+
+    .site-card-edit svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .site-card-url {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #5C5C5C;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .site-card-checked {
+      margin-top: 8px;
+      font-size: 11px;
+      color: #8A8A8A;
+      letter-spacing: 0.01em;
+    }
+
+    /* Add-site card */
+
+    .add-site-card {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 6px;
+      background: transparent;
+      border: 1.5px dashed #D4CFC9;
+      border-radius: 4px;
+      padding: 24px 18px;
+      text-decoration: none;
+      color: #8A8A8A;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+      min-height: 108px;
+      cursor: pointer;
+    }
+
+    .add-site-card:hover {
+      border-color: #C4453C;
+      color: #C4453C;
+      background: rgba(196, 69, 60, 0.03);
+    }
+
+    .add-site-card svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .add-site-card span {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    /* ── Responsive tweaks ───────────────────────────── */
+
+    @media (max-width: 480px) {
+      .header-inner {
+        height: 50px;
+        padding: 0 16px;
+      }
+
+      .header-brand-name {
+        font-size: 15px;
+      }
+
+      .header-brand-sep,
+      .header-brand-subtitle {
+        display: none;
+      }
+
+      .container {
+        padding: 24px 16px 64px;
+      }
+
+      .section-heading {
+        font-size: 18px;
+      }
+
+      .incident-card {
+        padding: 14px 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Header ────────────────────────────────────── -->
+
+  <header class="header">
+    <div class="header-inner">
+      <div class="header-brand">
+        <img src="../rpi-screenshots/rpi-logo.jpg" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover" />
+        <span class="header-brand-name">Roots of Progress</span>
+        <span class="header-brand-sep"></span>
+        <span class="header-brand-subtitle">Site Status</span>
+      </div>
+      <nav class="header-nav">
+        <a href="#">Settings</a>
+        <span class="separator"></span>
+        <a href="#">Log out</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ── Content ───────────────────────────────────── -->
+
+  <main class="container">
+
+    <!-- Open Incidents -->
+    <section class="section">
+      <h2 class="section-heading">Open Incidents</h2>
+      <div class="incident-list">
+
+        <a href="#" class="incident-card">
+          <div class="incident-top">
+            <span class="incident-site-name">Conference Site</span>
+            <span class="incident-duration">Down for 23 minutes</span>
+          </div>
+          <div class="incident-details">
+            <span class="incident-error">HTTP 503</span>
+            <span class="incident-url">https://conference.rootsofprogress.org</span>
+          </div>
+        </a>
+
+        <a href="#" class="incident-card">
+          <div class="incident-top">
+            <span class="incident-site-name">Fellowship Portal</span>
+            <span class="incident-duration">Down for 7 minutes</span>
+          </div>
+          <div class="incident-details">
+            <span class="incident-error">HTTP 503</span>
+            <span class="incident-url">https://fellows.rootsofprogress.org</span>
+          </div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- Sites -->
+    <section class="section">
+      <h2 class="section-heading">Sites</h2>
+      <div class="sites-grid">
+
+        <!-- 1. Main Website — Up -->
+        <div class="site-card">
+          <div class="site-card-top">
+            <div class="site-card-left">
+              <span class="status-dot up"></span>
+              <span class="site-card-name">Main Website</span>
+            </div>
+            <a href="#" class="site-card-edit" title="Edit site">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11.5 1.5l3 3-9 9H2.5v-3z"/>
+                <path d="M10 3l3 3"/>
+              </svg>
+            </a>
+          </div>
+          <div class="site-card-url">https://rootsofprogress.org</div>
+          <div class="site-card-checked">Checked 2 min ago</div>
+        </div>
+
+        <!-- 2. Conference Site — Down -->
+        <div class="site-card">
+          <div class="site-card-top">
+            <div class="site-card-left">
+              <span class="status-dot down"></span>
+              <span class="site-card-name">Conference Site</span>
+            </div>
+            <a href="#" class="site-card-edit" title="Edit site">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11.5 1.5l3 3-9 9H2.5v-3z"/>
+                <path d="M10 3l3 3"/>
+              </svg>
+            </a>
+          </div>
+          <div class="site-card-url">https://conference.rootsofprogress.org</div>
+          <div class="site-card-checked">Checked 1 min ago</div>
+        </div>
+
+        <!-- 3. Blog — Up -->
+        <div class="site-card">
+          <div class="site-card-top">
+            <div class="site-card-left">
+              <span class="status-dot up"></span>
+              <span class="site-card-name">Blog</span>
+            </div>
+            <a href="#" class="site-card-edit" title="Edit site">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11.5 1.5l3 3-9 9H2.5v-3z"/>
+                <path d="M10 3l3 3"/>
+              </svg>
+            </a>
+          </div>
+          <div class="site-card-url">https://blog.rootsofprogress.org</div>
+          <div class="site-card-checked">Checked 4 min ago</div>
+        </div>
+
+        <!-- 4. Fellowship Portal — Down -->
+        <div class="site-card">
+          <div class="site-card-top">
+            <div class="site-card-left">
+              <span class="status-dot down"></span>
+              <span class="site-card-name">Fellowship Portal</span>
+            </div>
+            <a href="#" class="site-card-edit" title="Edit site">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11.5 1.5l3 3-9 9H2.5v-3z"/>
+                <path d="M10 3l3 3"/>
+              </svg>
+            </a>
+          </div>
+          <div class="site-card-url">https://fellows.rootsofprogress.org</div>
+          <div class="site-card-checked">Checked 1 min ago</div>
+        </div>
+
+        <!-- 5. Newsletter Archive — Up -->
+        <div class="site-card">
+          <div class="site-card-top">
+            <div class="site-card-left">
+              <span class="status-dot up"></span>
+              <span class="site-card-name">Newsletter Archive</span>
+            </div>
+            <a href="#" class="site-card-edit" title="Edit site">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11.5 1.5l3 3-9 9H2.5v-3z"/>
+                <path d="M10 3l3 3"/>
+              </svg>
+            </a>
+          </div>
+          <div class="site-card-url">https://newsletter.rootsofprogress.org</div>
+          <div class="site-card-checked">Checked 3 min ago</div>
+        </div>
+
+        <!-- Add site -->
+        <a href="#" class="add-site-card">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <path d="M8 3v10M3 8h10"/>
+          </svg>
+          <span>Add site</span>
+        </a>
+
+      </div>
+    </section>
+
+  </main>
+
+</body>
+</html>

@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Incident on Conference Site - Roots of Progress Site Status</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #FAF8F5;
+      color: #1A1A1A;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 15px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ---- Header ---- */
+    .header {
+      background-color: #FFFFFF;
+      border-bottom: 1px solid #E8E4DF;
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-brand {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: #1A1A1A;
+      letter-spacing: -0.01em;
+    }
+
+    .header-subtitle {
+      font-size: 14px;
+      color: #5C5C5C;
+      position: relative;
+      padding-left: 14px;
+    }
+
+    .header-subtitle::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 1px;
+      bottom: 1px;
+      width: 1px;
+      background-color: #D4D0CC;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .header-link {
+      font-size: 14px;
+      color: #5C5C5C;
+      text-decoration: none;
+      transition: color 0.15s ease;
+    }
+
+    .header-link:hover {
+      color: #1A1A1A;
+    }
+
+    /* ---- Main Content ---- */
+    .main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 32px 24px 64px;
+    }
+
+    /* ---- Breadcrumb ---- */
+    .breadcrumb {
+      margin-bottom: 28px;
+    }
+
+    .breadcrumb a {
+      font-size: 14px;
+      color: #C4453C;
+      text-decoration: none;
+      transition: color 0.15s ease;
+    }
+
+    .breadcrumb a:hover {
+      color: #A03A32;
+      text-decoration: underline;
+    }
+
+    /* ---- Incident Header Card ---- */
+    .incident-header-card {
+      background-color: #FFFFFF;
+      border: 1px solid #E8E4DF;
+      border-radius: 4px;
+      padding: 28px 28px 24px;
+      margin-bottom: 24px;
+    }
+
+    .incident-title-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: #FFFFFF;
+      background-color: #C4453C;
+      padding: 3px 10px;
+      border-radius: 4px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .incident-title {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: #1A1A1A;
+      line-height: 1.25;
+    }
+
+    .incident-meta {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .incident-meta-row {
+      font-size: 14px;
+      color: #5C5C5C;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .incident-meta-row .label {
+      color: #5C5C5C;
+    }
+
+    .incident-meta-row .time-ago {
+      color: #888888;
+    }
+
+    .code-tag {
+      font-family: "SF Mono", SFMono-Regular, Consolas, "Liberation Mono", Menlo, Courier, monospace;
+      font-size: 13px;
+      background-color: #F5F0EB;
+      color: #C4453C;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid #E8E4DF;
+      font-weight: 500;
+    }
+
+    .incident-actions {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #F0ECE8;
+    }
+
+    .btn-resolve {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background-color: #5A8A5A;
+      color: #FFFFFF;
+      border: none;
+      border-radius: 4px;
+      padding: 9px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+      line-height: 1;
+    }
+
+    .btn-resolve:hover {
+      background-color: #4E7A4E;
+    }
+
+    .btn-resolve svg {
+      width: 15px;
+      height: 15px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* ---- Check Log ---- */
+    .check-log-card {
+      background-color: #FFFFFF;
+      border: 1px solid #E8E4DF;
+      border-radius: 4px;
+    }
+
+    .check-log-heading {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      color: #1A1A1A;
+      padding: 20px 28px 16px;
+      border-bottom: 1px solid #F0ECE8;
+    }
+
+    .check-log-list {
+      list-style: none;
+    }
+
+    .check-entry {
+      display: flex;
+      align-items: center;
+      padding: 13px 28px;
+      border-bottom: 1px solid #F5F2EF;
+      gap: 14px;
+      transition: background-color 0.1s ease;
+    }
+
+    .check-entry:last-child {
+      border-bottom: none;
+    }
+
+    .check-entry:hover {
+      background-color: #FDFCFB;
+    }
+
+    .check-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .check-dot.fail {
+      background-color: #C4453C;
+      box-shadow: 0 0 0 3px rgba(196, 69, 60, 0.12);
+    }
+
+    .check-status {
+      font-size: 14px;
+      font-weight: 500;
+      color: #C4453C;
+      min-width: 80px;
+    }
+
+    .check-response {
+      font-family: "SF Mono", SFMono-Regular, Consolas, "Liberation Mono", Menlo, Courier, monospace;
+      font-size: 12px;
+      color: #5C5C5C;
+      background-color: #F5F0EB;
+      padding: 2px 7px;
+      border-radius: 3px;
+      border: 1px solid #EBE7E2;
+    }
+
+    .check-time {
+      font-size: 13px;
+      color: #888888;
+      margin-left: auto;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .triggered-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #C4453C;
+      background-color: rgba(196, 69, 60, 0.08);
+      padding: 2px 8px;
+      border-radius: 3px;
+      white-space: nowrap;
+    }
+
+    /* ---- Responsive ---- */
+    @media (max-width: 600px) {
+      .header {
+        padding: 0 16px;
+      }
+
+      .main {
+        padding: 24px 16px 48px;
+      }
+
+      .incident-header-card {
+        padding: 20px;
+      }
+
+      .incident-title {
+        font-size: 20px;
+      }
+
+      .check-log-heading {
+        padding: 16px 20px 14px;
+      }
+
+      .check-entry {
+        padding: 12px 20px;
+      }
+
+      .check-response {
+        display: none;
+      }
+
+      .incident-title-row {
+        flex-wrap: wrap;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <img src="../rpi-screenshots/rpi-logo.jpg" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover" />
+      <span class="header-brand">Roots of Progress</span>
+      <span class="header-subtitle">Site Status</span>
+    </div>
+    <nav class="header-right">
+      <a href="#" class="header-link">Settings</a>
+      <a href="#" class="header-link">Log out</a>
+    </nav>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main">
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+      <a href="#">&larr; Conference Site</a>
+    </div>
+
+    <!-- Incident Header Card -->
+    <div class="incident-header-card">
+      <div class="incident-title-row">
+        <span class="status-badge">Open</span>
+        <h1 class="incident-title">Incident on Conference Site</h1>
+      </div>
+
+      <div class="incident-meta">
+        <div class="incident-meta-row">
+          <span class="label">Opened Feb 16, 2:42 PM</span>
+          <span class="time-ago">(23 minutes ago)</span>
+        </div>
+        <div class="incident-meta-row">
+          <span class="label">Triggered by:</span>
+          <span class="code-tag">HTTP 503</span>
+        </div>
+      </div>
+
+      <div class="incident-actions">
+        <button class="btn-resolve">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          Resolve
+        </button>
+      </div>
+    </div>
+
+    <!-- Check Log Card -->
+    <div class="check-log-card">
+      <h2 class="check-log-heading">Checks Since Incident Opened</h2>
+      <ul class="check-log-list">
+
+        <li class="check-entry">
+          <span class="check-dot fail"></span>
+          <span class="check-status">Failing</span>
+          <span class="check-response">503</span>
+          <span class="check-time">Feb 16, 3:07 PM</span>
+        </li>
+
+        <li class="check-entry">
+          <span class="check-dot fail"></span>
+          <span class="check-status">Failing</span>
+          <span class="check-response">503</span>
+          <span class="check-time">Feb 16, 3:02 PM</span>
+        </li>
+
+        <li class="check-entry">
+          <span class="check-dot fail"></span>
+          <span class="check-status">Failing</span>
+          <span class="check-response">503</span>
+          <span class="check-time">Feb 16, 2:57 PM</span>
+        </li>
+
+        <li class="check-entry">
+          <span class="check-dot fail"></span>
+          <span class="check-status">Failing</span>
+          <span class="check-response">503</span>
+          <span class="check-time">Feb 16, 2:52 PM</span>
+        </li>
+
+        <li class="check-entry">
+          <span class="check-dot fail"></span>
+          <span class="check-status">Failing</span>
+          <span class="check-response">503</span>
+          <span class="check-time">Feb 16, 2:47 PM</span>
+        </li>
+
+        <li class="check-entry">
+          <span class="check-dot fail"></span>
+          <span class="check-status">Failing</span>
+          <span class="check-response">503</span>
+          <span class="check-time">
+            <span class="triggered-label">Triggered incident</span>
+            Feb 16, 2:42 PM
+          </span>
+        </li>
+
+      </ul>
+    </div>
+
+  </main>
+
+</body>
+</html>
