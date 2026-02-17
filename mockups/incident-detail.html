@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Incident on API Server — Smoke Alarm</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f9fafb;
+      color: #111827;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ---- Header ---- */
+    .header {
+      background: #fff;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .header-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-brand a {
+      font-size: 15px;
+      font-weight: 600;
+      color: #111827;
+      text-decoration: none;
+      letter-spacing: -0.01em;
+    }
+
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .header-nav a {
+      font-size: 13px;
+      color: #6b7280;
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .header-nav a:hover {
+      color: #111827;
+    }
+
+    /* ---- Main container ---- */
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ---- Breadcrumb ---- */
+    .breadcrumb {
+      padding: 20px 0 0;
+    }
+
+    .breadcrumb a {
+      font-size: 13px;
+      color: #6b7280;
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .breadcrumb a:hover {
+      color: #111827;
+    }
+
+    .breadcrumb-arrow {
+      margin-right: 4px;
+    }
+
+    /* ---- Incident heading area ---- */
+    .incident-header {
+      padding: 24px 0 0;
+    }
+
+    .incident-meta-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+
+    .status-badge::before {
+      content: "";
+      display: block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #dc2626;
+      animation: pulse-red 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-red {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .incident-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #111827;
+      margin-bottom: 16px;
+    }
+
+    .incident-details {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 24px;
+    }
+
+    .incident-detail-row {
+      display: flex;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .incident-detail-label {
+      color: #6b7280;
+      width: 110px;
+      flex-shrink: 0;
+    }
+
+    .incident-detail-value {
+      color: #111827;
+    }
+
+    .incident-detail-value .ago {
+      color: #9ca3af;
+      margin-left: 4px;
+    }
+
+    .incident-detail-value code {
+      font-family: "SF Mono", SFMono-Regular, ui-monospace, Menlo, Consolas, monospace;
+      font-size: 12px;
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      padding: 2px 7px;
+      border-radius: 4px;
+      color: #dc2626;
+    }
+
+    /* ---- Resolve button ---- */
+    .resolve-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      background: #059669;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s, box-shadow 0.15s;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    }
+
+    .resolve-btn:hover {
+      background: #047857;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    }
+
+    .resolve-btn:active {
+      background: #065f46;
+    }
+
+    .resolve-btn svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    /* ---- Divider ---- */
+    .divider {
+      border: none;
+      border-top: 1px solid #e5e7eb;
+      margin: 32px 0;
+    }
+
+    /* ---- Check log section ---- */
+    .check-log-heading {
+      font-size: 14px;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 4px;
+    }
+
+    .check-log-subheading {
+      font-size: 13px;
+      color: #9ca3af;
+      margin-bottom: 16px;
+    }
+
+    .check-log {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 48px;
+    }
+
+    .check-entry {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      font-size: 13px;
+      border-bottom: 1px solid #f3f4f6;
+      transition: background 0.1s;
+    }
+
+    .check-entry:last-child {
+      border-bottom: none;
+    }
+
+    .check-entry:hover {
+      background: #fafbfc;
+    }
+
+    .check-time {
+      width: 160px;
+      flex-shrink: 0;
+      color: #6b7280;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .check-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-right: 12px;
+    }
+
+    .check-status-dot.fail {
+      background: #ef4444;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+    }
+
+    .check-status-dot.pass {
+      background: #22c55e;
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12);
+    }
+
+    .check-message {
+      flex: 1;
+      color: #111827;
+    }
+
+    .check-label {
+      margin-left: auto;
+      padding-left: 12px;
+      flex-shrink: 0;
+    }
+
+    .check-label span {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 500;
+      color: #9ca3af;
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      padding: 2px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.01em;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="header-brand">
+        <a href="#">Smoke Alarm</a>
+      </div>
+      <nav class="header-nav">
+        <a href="#">Settings</a>
+        <a href="#">Log out</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main content -->
+  <main class="container">
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+      <a href="#"><span class="breadcrumb-arrow">&larr;</span> API Server</a>
+    </div>
+
+    <!-- Incident heading area -->
+    <div class="incident-header">
+      <div class="incident-meta-row">
+        <span class="status-badge">Open</span>
+      </div>
+
+      <h1 class="incident-title">Incident on API Server</h1>
+
+      <div class="incident-details">
+        <div class="incident-detail-row">
+          <span class="incident-detail-label">Opened</span>
+          <span class="incident-detail-value">
+            Feb 16, 2:42 PM
+            <span class="ago">(23 minutes ago)</span>
+          </span>
+        </div>
+        <div class="incident-detail-row">
+          <span class="incident-detail-label">Triggered by</span>
+          <span class="incident-detail-value"><code>HTTP 503</code></span>
+        </div>
+        <div class="incident-detail-row">
+          <span class="incident-detail-label">Duration</span>
+          <span class="incident-detail-value">23 min, ongoing</span>
+        </div>
+        <div class="incident-detail-row">
+          <span class="incident-detail-label">Failed checks</span>
+          <span class="incident-detail-value">6</span>
+        </div>
+      </div>
+
+      <button class="resolve-btn">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3.5 8.5 6.5 11.5 12.5 5"></polyline>
+        </svg>
+        Resolve Incident
+      </button>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Check log -->
+    <h2 class="check-log-heading">Checks Since Incident Opened</h2>
+    <p class="check-log-subheading">6 checks, all failing</p>
+
+    <div class="check-log">
+      <div class="check-entry">
+        <span class="check-time">Feb 16, 3:05 PM</span>
+        <span class="check-status-dot fail"></span>
+        <span class="check-message">503 Service Unavailable</span>
+        <span class="check-label"></span>
+      </div>
+      <div class="check-entry">
+        <span class="check-time">Feb 16, 3:00 PM</span>
+        <span class="check-status-dot fail"></span>
+        <span class="check-message">503 Service Unavailable</span>
+        <span class="check-label"></span>
+      </div>
+      <div class="check-entry">
+        <span class="check-time">Feb 16, 2:55 PM</span>
+        <span class="check-status-dot fail"></span>
+        <span class="check-message">503 Service Unavailable</span>
+        <span class="check-label"></span>
+      </div>
+      <div class="check-entry">
+        <span class="check-time">Feb 16, 2:50 PM</span>
+        <span class="check-status-dot fail"></span>
+        <span class="check-message">Connection timeout</span>
+        <span class="check-label"></span>
+      </div>
+      <div class="check-entry">
+        <span class="check-time">Feb 16, 2:47 PM</span>
+        <span class="check-status-dot fail"></span>
+        <span class="check-message">503 Service Unavailable</span>
+        <span class="check-label"></span>
+      </div>
+      <div class="check-entry">
+        <span class="check-time">Feb 16, 2:42 PM</span>
+        <span class="check-status-dot fail"></span>
+        <span class="check-message">503 Service Unavailable</span>
+        <span class="check-label"><span>Triggered incident</span></span>
+      </div>
+    </div>
+
+  </main>
+
+</body>
+</html>

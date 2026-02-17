@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Server — Smoke Alarm</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #fafafa;
+      color: #111;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ── Header ─────────────────────────────────────── */
+
+    .header {
+      background: #fff;
+      border-bottom: 1px solid #e5e5e5;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .header-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-brand {
+      font-size: 15px;
+      font-weight: 600;
+      color: #111;
+      text-decoration: none;
+      letter-spacing: -0.01em;
+    }
+
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .header-nav a {
+      font-size: 13px;
+      color: #666;
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .header-nav a:hover {
+      color: #111;
+    }
+
+    /* ── Container ──────────────────────────────────── */
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ── Breadcrumb ─────────────────────────────────── */
+
+    .breadcrumb {
+      padding-top: 24px;
+      padding-bottom: 4px;
+    }
+
+    .breadcrumb a {
+      font-size: 13px;
+      color: #666;
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .breadcrumb a:hover {
+      color: #111;
+    }
+
+    /* ── Site Heading ───────────────────────────────── */
+
+    .site-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: 20px 0 32px;
+      gap: 24px;
+    }
+
+    .site-heading-left {
+      min-width: 0;
+    }
+
+    .site-name {
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: -0.025em;
+      line-height: 1.3;
+      color: #111;
+    }
+
+    .site-url {
+      font-size: 13px;
+      color: #666;
+      margin-top: 2px;
+    }
+
+    .site-url a {
+      color: #666;
+      text-decoration: none;
+    }
+
+    .site-url a:hover {
+      color: #111;
+      text-decoration: underline;
+    }
+
+    .site-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .status-dot.red {
+      background: #ef4444;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+    }
+
+    .status-dot.green {
+      background: #22c55e;
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+    }
+
+    .site-status.down {
+      color: #dc2626;
+    }
+
+    .site-status.up {
+      color: #16a34a;
+    }
+
+    .site-heading-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+      padding-top: 4px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 32px;
+      padding: 0 14px;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .btn-secondary {
+      background: #fff;
+      color: #111;
+      border: 1px solid #d4d4d4;
+    }
+
+    .btn-secondary:hover {
+      background: #f5f5f5;
+      border-color: #c0c0c0;
+    }
+
+    .btn-danger-outline {
+      background: #fff;
+      color: #999;
+      border: 1px solid #e5e5e5;
+    }
+
+    .btn-danger-outline:hover {
+      color: #dc2626;
+      border-color: #fca5a5;
+      background: #fef2f2;
+    }
+
+    /* ── Section ────────────────────────────────────── */
+
+    .section {
+      margin-bottom: 40px;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #111;
+      letter-spacing: -0.01em;
+      margin-bottom: 12px;
+    }
+
+    /* ── Incidents ──────────────────────────────────── */
+
+    .incidents-list {
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .incident-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      text-decoration: none;
+      color: inherit;
+      transition: background 0.1s;
+    }
+
+    .incident-item:hover {
+      background: #fafafa;
+    }
+
+    .incident-item + .incident-item {
+      border-top: 1px solid #f0f0f0;
+    }
+
+    .incident-indicator {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .incident-indicator.open {
+      background: #ef4444;
+    }
+
+    .incident-indicator.resolved {
+      background: #d4d4d4;
+    }
+
+    .incident-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .incident-top-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .incident-badge {
+      display: inline-flex;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
+    .incident-badge.open {
+      background: #fef2f2;
+      color: #dc2626;
+    }
+
+    .incident-badge.resolved {
+      background: #f5f5f5;
+      color: #888;
+    }
+
+    .incident-reason {
+      font-size: 13px;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .incident-time {
+      font-size: 12px;
+      color: #888;
+      margin-top: 2px;
+    }
+
+    .incident-chevron {
+      flex-shrink: 0;
+      color: #ccc;
+      font-size: 14px;
+    }
+
+    /* ── Check Log ─────────────────────────────────── */
+
+    .check-log {
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .check-log-header {
+      display: flex;
+      align-items: center;
+      padding: 8px 16px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid #f0f0f0;
+      background: #fafafa;
+    }
+
+    .check-log-header .col-time {
+      width: 160px;
+      flex-shrink: 0;
+    }
+
+    .check-log-header .col-result {
+      flex: 1;
+    }
+
+    .check-row {
+      display: flex;
+      align-items: center;
+      padding: 7px 16px;
+      font-size: 13px;
+    }
+
+    .check-row + .check-row {
+      border-top: 1px solid #f5f5f5;
+    }
+
+    .check-row:hover {
+      background: #fcfcfc;
+    }
+
+    .check-time {
+      width: 160px;
+      flex-shrink: 0;
+      color: #666;
+      font-variant-numeric: tabular-nums;
+      font-size: 12px;
+    }
+
+    .check-result {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 13px;
+    }
+
+    .check-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .check-dot.green {
+      background: #22c55e;
+    }
+
+    .check-dot.red {
+      background: #ef4444;
+    }
+
+    .check-result-text {
+      color: #333;
+    }
+
+    .check-result-text.fail {
+      color: #dc2626;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <a href="#" class="header-brand">Smoke Alarm</a>
+      <nav class="header-nav">
+        <a href="#">Settings</a>
+        <a href="#">Log out</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+      <a href="#">&larr; All Sites</a>
+    </div>
+
+    <!-- Site Heading -->
+    <div class="site-heading">
+      <div class="site-heading-left">
+        <h1 class="site-name">API Server</h1>
+        <div class="site-url"><a href="https://api.example.com" target="_blank" rel="noopener">https://api.example.com</a></div>
+        <div class="site-status down">
+          <span class="status-dot red"></span>
+          Down
+        </div>
+      </div>
+      <div class="site-heading-actions">
+        <a href="#" class="btn btn-secondary">Edit</a>
+        <a href="#" class="btn btn-danger-outline">Delete</a>
+      </div>
+    </div>
+
+    <!-- Incidents -->
+    <div class="section">
+      <h2 class="section-title">Incidents</h2>
+      <div class="incidents-list">
+
+        <a href="#" class="incident-item">
+          <span class="incident-indicator open"></span>
+          <div class="incident-body">
+            <div class="incident-top-row">
+              <span class="incident-badge open">Open</span>
+              <span class="incident-reason">HTTP 503</span>
+            </div>
+            <div class="incident-time">Opened 23 minutes ago</div>
+          </div>
+          <span class="incident-chevron">&rsaquo;</span>
+        </a>
+
+        <a href="#" class="incident-item">
+          <span class="incident-indicator resolved"></span>
+          <div class="incident-body">
+            <div class="incident-top-row">
+              <span class="incident-badge resolved">Resolved</span>
+              <span class="incident-reason">HTTP 500</span>
+            </div>
+            <div class="incident-time">Feb 14, 2:30 PM &ndash; Feb 14, 3:15 PM (45 min)</div>
+          </div>
+          <span class="incident-chevron">&rsaquo;</span>
+        </a>
+
+        <a href="#" class="incident-item">
+          <span class="incident-indicator resolved"></span>
+          <div class="incident-body">
+            <div class="incident-top-row">
+              <span class="incident-badge resolved">Resolved</span>
+              <span class="incident-reason">Connection timeout</span>
+            </div>
+            <div class="incident-time">Feb 10, 9:00 AM &ndash; Feb 10, 9:20 AM (20 min)</div>
+          </div>
+          <span class="incident-chevron">&rsaquo;</span>
+        </a>
+
+      </div>
+    </div>
+
+    <!-- Check Log -->
+    <div class="section">
+      <h2 class="section-title">Check Log</h2>
+      <div class="check-log">
+
+        <div class="check-log-header">
+          <span class="col-time">Timestamp</span>
+          <span class="col-result">Result</span>
+        </div>
+
+        <div class="check-row">
+          <span class="check-time">Feb 16, 3:05 PM</span>
+          <span class="check-result">
+            <span class="check-dot red"></span>
+            <span class="check-result-text fail">503 Service Unavailable</span>
+          </span>
+        </div>
+
+        <div class="check-row">
+          <span class="check-time">Feb 16, 3:00 PM</span>
+          <span class="check-result">
+            <span class="check-dot red"></span>
+            <span class="check-result-text fail">503 Service Unavailable</span>
+          </span>
+        </div>
+
+        <div class="check-row">
+          <span class="check-time">Feb 16, 2:55 PM</span>
+          <span class="check-result">
+            <span class="check-dot red"></span>
+            <span class="check-result-text fail">503 Service Unavailable</span>
+          </span>
+        </div>
+
+        <div class="check-row">
+          <span class="check-time">Feb 16, 2:50 PM</span>
+          <span class="check-result">
+            <span class="check-dot red"></span>
+            <span class="check-result-text fail">Connection timeout</span>
+          </span>
+        </div>
+
+        <div class="check-row">
+          <span class="check-time">Feb 16, 2:45 PM</span>
+          <span class="check-result">
+            <span class="check-dot green"></span>
+            <span class="check-result-text">200 OK</span>
+          </span>
+        </div>
+
+        <div class="check-row">
+          <span class="check-time">Feb 16, 2:40 PM</span>
+          <span class="check-result">
+            <span class="check-dot green"></span>
+            <span class="check-result-text">200 OK</span>
+          </span>
+        </div>
+
+        <div class="check-row">
+          <span class="check-time">Feb 16, 2:35 PM</span>
+          <span class="check-result">
+            <span class="check-dot green"></span>
+            <span class="check-result-text">200 OK</span>
+          </span>
+        </div>
+
+        <div class="check-row">
+          <span class="check-time">Feb 16, 2:30 PM</span>
+          <span class="check-result">
+            <span class="check-dot green"></span>
+            <span class="check-result-text">200 OK</span>
+          </span>
+        </div>
+
+        <div class="check-row">
+          <span class="check-time">Feb 16, 2:25 PM</span>
+          <span class="check-result">
+            <span class="check-dot green"></span>
+            <span class="check-result-text">200 OK</span>
+          </span>
+        </div>
+
+        <div class="check-row">
+          <span class="check-time">Feb 16, 2:20 PM</span>
+          <span class="check-result">
+            <span class="check-dot green"></span>
+            <span class="check-result-text">200 OK</span>
+          </span>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

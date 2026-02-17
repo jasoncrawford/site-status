@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smoke Alarm — Status</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f5f5;
+      color: #111;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ── Header ──────────────────────────────────────── */
+
+    .header {
+      background: #fff;
+      border-bottom: 1px solid #e5e5e5;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-brand {
+      font-size: 14px;
+      font-weight: 600;
+      color: #111;
+      letter-spacing: -0.01em;
+    }
+
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .header-nav a {
+      font-size: 13px;
+      color: #666;
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .header-nav a:hover {
+      color: #111;
+    }
+
+    .header-nav .separator {
+      width: 1px;
+      height: 16px;
+      background: #e0e0e0;
+    }
+
+    /* ── Main layout ─────────────────────────────────── */
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 32px 24px 64px;
+    }
+
+    /* ── Section headings ────────────────────────────── */
+
+    .section-heading {
+      font-size: 13px;
+      font-weight: 500;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 12px;
+    }
+
+    .section + .section {
+      margin-top: 40px;
+    }
+
+    /* ── Incident cards ──────────────────────────────── */
+
+    .incident-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .incident-card {
+      display: block;
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-left: 3px solid #e04545;
+      border-radius: 6px;
+      padding: 14px 16px;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .incident-card:hover {
+      border-color: #ccc;
+      border-left-color: #e04545;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    }
+
+    .incident-top {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .incident-site {
+      font-size: 14px;
+      font-weight: 600;
+      color: #111;
+    }
+
+    .incident-duration {
+      font-size: 12px;
+      font-weight: 500;
+      color: #e04545;
+      white-space: nowrap;
+    }
+
+    .incident-details {
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .incident-error {
+      font-size: 12px;
+      font-family: "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono", "Courier New", monospace;
+      color: #111;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      padding: 1px 6px;
+      border-radius: 3px;
+    }
+
+    .incident-url {
+      font-size: 12px;
+      color: #999;
+    }
+
+    /* ── Site cards grid ──────────────────────────────── */
+
+    .sites-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    @media (max-width: 720px) {
+      .sites-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .sites-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .site-card {
+      display: block;
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+      padding: 14px 16px;
+      text-decoration: none;
+      color: inherit;
+      position: relative;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .site-card:hover {
+      border-color: #ccc;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    }
+
+    .site-card-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .status-dot.green {
+      background: #22c55e;
+      box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.15);
+    }
+
+    .status-dot.red {
+      background: #ef4444;
+      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+    }
+
+    .site-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #111;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .site-edit {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      color: #bbb;
+      flex-shrink: 0;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .site-card:hover .site-edit {
+      color: #888;
+    }
+
+    .site-edit:hover {
+      background: #f0f0f0;
+      color: #555 !important;
+    }
+
+    .site-edit svg {
+      width: 13px;
+      height: 13px;
+    }
+
+    .site-url {
+      margin-top: 4px;
+      font-size: 12px;
+      color: #999;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .site-checked {
+      margin-top: 6px;
+      font-size: 11px;
+      color: #bbb;
+    }
+
+    /* ── Add site button ─────────────────────────────── */
+
+    .add-site-card {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: #fff;
+      border: 1px dashed #d5d5d5;
+      border-radius: 6px;
+      padding: 14px 16px;
+      text-decoration: none;
+      color: #999;
+      font-size: 13px;
+      font-weight: 500;
+      min-height: 92px;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+
+    .add-site-card:hover {
+      border-color: #aaa;
+      color: #555;
+      background: #fafafa;
+    }
+
+    .add-site-card svg {
+      width: 16px;
+      height: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <span class="header-brand">Smoke Alarm</span>
+      <nav class="header-nav">
+        <a href="#">Settings</a>
+        <span class="separator"></span>
+        <a href="#">Log out</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- Open Incidents -->
+    <div class="section">
+      <h2 class="section-heading">Open Incidents</h2>
+      <div class="incident-list">
+
+        <a href="#" class="incident-card">
+          <div class="incident-top">
+            <span class="incident-site">API Server</span>
+            <span class="incident-duration">Down for 23 minutes</span>
+          </div>
+          <div class="incident-details">
+            <span class="incident-error">HTTP 503</span>
+            <span class="incident-url">https://api.example.com</span>
+          </div>
+        </a>
+
+        <a href="#" class="incident-card">
+          <div class="incident-top">
+            <span class="incident-site">Customer Portal</span>
+            <span class="incident-duration">Down for 4 minutes</span>
+          </div>
+          <div class="incident-details">
+            <span class="incident-error">Timeout</span>
+            <span class="incident-url">https://app.example.com</span>
+          </div>
+        </a>
+
+      </div>
+    </div>
+
+    <!-- Sites -->
+    <div class="section">
+      <h2 class="section-heading">Sites</h2>
+      <div class="sites-grid">
+
+        <!-- Marketing Site — Up -->
+        <a href="#" class="site-card">
+          <div class="site-card-header">
+            <span class="status-dot green"></span>
+            <span class="site-name">Marketing Site</span>
+            <span class="site-edit" title="Edit site">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+              </svg>
+            </span>
+          </div>
+          <div class="site-url">https://example.com</div>
+          <div class="site-checked">Checked 2 min ago</div>
+        </a>
+
+        <!-- API Server — Down -->
+        <a href="#" class="site-card">
+          <div class="site-card-header">
+            <span class="status-dot red"></span>
+            <span class="site-name">API Server</span>
+            <span class="site-edit" title="Edit site">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+              </svg>
+            </span>
+          </div>
+          <div class="site-url">https://api.example.com</div>
+          <div class="site-checked">Checked 1 min ago</div>
+        </a>
+
+        <!-- Documentation — Up -->
+        <a href="#" class="site-card">
+          <div class="site-card-header">
+            <span class="status-dot green"></span>
+            <span class="site-name">Documentation</span>
+            <span class="site-edit" title="Edit site">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+              </svg>
+            </span>
+          </div>
+          <div class="site-url">https://docs.example.com</div>
+          <div class="site-checked">Checked 4 min ago</div>
+        </a>
+
+        <!-- Customer Portal — Down -->
+        <a href="#" class="site-card">
+          <div class="site-card-header">
+            <span class="status-dot red"></span>
+            <span class="site-name">Customer Portal</span>
+            <span class="site-edit" title="Edit site">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+              </svg>
+            </span>
+          </div>
+          <div class="site-url">https://app.example.com</div>
+          <div class="site-checked">Checked 1 min ago</div>
+        </a>
+
+        <!-- Blog — Up -->
+        <a href="#" class="site-card">
+          <div class="site-card-header">
+            <span class="status-dot green"></span>
+            <span class="site-name">Blog</span>
+            <span class="site-edit" title="Edit site">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+              </svg>
+            </span>
+          </div>
+          <div class="site-url">https://blog.example.com</div>
+          <div class="site-checked">Checked 3 min ago</div>
+        </a>
+
+        <!-- Add site -->
+        <a href="#" class="add-site-card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Add site
+        </a>
+
+      </div>
+    </div>
+
+  </main>
+
+</body>
+</html>
