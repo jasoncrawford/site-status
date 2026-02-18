@@ -4,7 +4,7 @@ import type { Site, Check, Incident } from "@/lib/supabase/types"
 import { formatTimeAgo, formatDuration } from "@/lib/format"
 import AddSiteCard from "@/components/AddSiteCard"
 import EditSiteButton from "@/components/EditSiteButton"
-import RealtimeStatusPage from "@/components/RealtimeStatusPage" 4837cd3 (Add real-time updates via Supabase Realtime subscriptions)
+import RealtimeStatusPage from "@/components/RealtimeStatusPage"
 
 export const revalidate = 0
 
