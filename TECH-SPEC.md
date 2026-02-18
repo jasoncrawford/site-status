@@ -206,8 +206,41 @@ For the MVP, this is fine -- Postgres handles this volume easily. A future impro
 
 ## Testing Strategy
 
-- **Unit tests** for the check-runner logic (HTTP checks, incident-opening logic, deduplication).
-- **Integration tests** against a local Supabase instance (via `supabase start`) for database operations, RLS policies, and the API routes.
-- **Manual testing** for the UI and real-time behavior.
+All layers of the app have automated regression tests. Manual testing is reserved for initial user acceptance only.
 
-No end-to-end browser testing framework for the MVP; manual testing is sufficient given the small number of screens.
+**Test runner:** Vitest for unit and integration tests. Playwright for end-to-end browser tests.
+
+**Local Supabase:** All tests that touch the database run against a local Supabase instance (`supabase start`), so tests are fast, isolated, and don't require a network connection.
+
+### Unit tests
+
+- Check-runner logic: HTTP checks, timeout handling, SSL validation, status code classification.
+- Incident logic: opening an incident on failure, deduplication (no new incident when one is already open), resolving.
+- Email construction: correct recipients, correct content for each failure type.
+
+### Integration tests (API routes)
+
+- CRUD operations for sites, contacts, and invitations.
+- The full check-run cycle: seed sites, call the check-runner endpoint, verify that checks are recorded, incidents are opened/deduplicated, and email is sent (using a mock or captured Resend call).
+- Auth: protected routes reject unauthenticated requests, login flow works, invitation acceptance creates a user.
+- RLS policies: verify that anonymous users can read public data but cannot write, and that authenticated users can write.
+
+### End-to-end tests (Playwright)
+
+- **Status page:** Loads, displays sites and open incidents, links to detail pages.
+- **Site detail:** Displays check log and incident history.
+- **Incident detail:** Shows incident info, resolve button works for logged-in users.
+- **Settings:** Add/remove contacts, invite users (behind auth).
+- **Login:** Full login/logout flow.
+- **Real-time updates:** A test triggers a check run (via API call) and asserts that the status page updates without a manual refresh.
+
+### CI
+
+Tests run on every push via GitHub Actions. The CI workflow:
+
+1. Starts a local Supabase instance (`supabase start`).
+2. Runs database migrations.
+3. Runs Vitest (unit + integration).
+4. Runs Playwright (end-to-end).
+
+Deployments to Vercel only proceed if all tests pass.
