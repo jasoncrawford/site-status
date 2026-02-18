@@ -4,6 +4,7 @@ import type { Site, Check, Incident } from "@/lib/supabase/types"
 import { formatTimeAgo, formatDuration } from "@/lib/format"
 import AddSiteCard from "@/components/AddSiteCard"
 import EditSiteButton from "@/components/EditSiteButton"
+import RealtimeStatusPage from "@/components/RealtimeStatusPage"
 
 export const revalidate = 0
 
@@ -58,6 +59,7 @@ export default async function StatusPage() {
       className="max-w-[960px] mx-auto"
       style={{ padding: "36px 24px 80px" }}
     >
+      <RealtimeStatusPage />
       {incidents.length > 0 && (
         <section>
           <h2
