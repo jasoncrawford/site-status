@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { checkSite } from '@/lib/checker'
+import { sendIncidentAlert } from '@/lib/notifications'
 
 export const maxDuration = 60
 
@@ -59,12 +60,30 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (!openIncident) {
-        await supabase.from('incidents').insert({
-          site_id: site.id,
-          check_id: check.id,
-          status: 'open',
-        })
+        const { data: incident } = await supabase
+          .from('incidents')
+          .insert({
+            site_id: site.id,
+            check_id: check.id,
+            status: 'open',
+          })
+          .select('id')
+          .single()
         newIncidents++
+
+        if (incident) {
+          const { data: contacts } = await supabase
+            .from('contacts')
+            .select('email')
+
+          await sendIncidentAlert({
+            siteName: site.name,
+            siteUrl: site.url,
+            error,
+            incidentId: incident.id,
+            contactEmails: (contacts ?? []).map((c: { email: string }) => c.email),
+          })
+        }
       }
     }
   }
