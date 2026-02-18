@@ -2,6 +2,8 @@ import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import type { Site, Check, Incident } from "@/lib/supabase/types"
 import { formatTimeAgo, formatDuration } from "@/lib/format"
+import AddSiteCard from "@/components/AddSiteCard"
+import EditSiteButton from "@/components/EditSiteButton"
 
 export const revalidate = 0
 
@@ -37,14 +39,19 @@ async function getStatusData() {
     })
   }
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
   return {
     sites: sitesWithChecks,
     incidents: (openIncidents ?? []) as IncidentWithSite[],
+    isAdmin: !!user,
   }
 }
 
 export default async function StatusPage() {
-  const { sites, incidents } = await getStatusData()
+  const { sites, incidents, isAdmin } = await getStatusData()
 
   return (
     <main
@@ -118,58 +125,74 @@ export default async function StatusPage() {
           Sites
         </h2>
 
-        {sites.length === 0 ? (
+        {sites.length === 0 && !isAdmin ? (
           <p className="text-sm" style={{ color: "#5C5C5C" }}>
             No sites are being monitored yet.
           </p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {sites.map((site) => (
-              <Link
+              <div
                 key={site.id}
-                href={`/sites/${site.id}`}
-                className="block no-underline"
+                className="group relative"
                 style={{
                   backgroundColor: "#FFFFFF",
                   border: "1px solid #E8E4DF",
                   borderRadius: "4px",
                   padding: "16px 18px",
-                  color: "inherit",
                 }}
               >
-                <div className="flex items-center gap-2.5">
-                  <span
-                    className="w-2 h-2 rounded-full shrink-0"
-                    style={{
-                      backgroundColor:
-                        site.lastCheck?.status === "failure"
-                          ? "#C4453C"
-                          : "#5A8A5A",
-                    }}
-                  />
-                  <span
-                    className="text-sm font-bold truncate"
-                    style={{ color: "#1A1A1A" }}
+                <Link
+                  href={`/sites/${site.id}`}
+                  className="block no-underline"
+                  style={{ color: "inherit" }}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{
+                          backgroundColor:
+                            site.lastCheck?.status === "failure"
+                              ? "#C4453C"
+                              : "#5A8A5A",
+                        }}
+                      />
+                      <span
+                        className="text-sm font-bold truncate"
+                        style={{ color: "#1A1A1A" }}
+                      >
+                        {site.name}
+                      </span>
+                    </div>
+                  </div>
+                  <div
+                    className="mt-1.5 text-xs truncate"
+                    style={{ color: "#5C5C5C" }}
                   >
-                    {site.name}
-                  </span>
-                </div>
-                <div
-                  className="mt-1.5 text-xs truncate"
-                  style={{ color: "#5C5C5C" }}
-                >
-                  {site.url}
-                </div>
-                <div
-                  className="mt-2 text-[11px]"
-                  style={{ color: "#8A8A8A", letterSpacing: "0.01em" }}
-                >
-                  {site.lastCheck
-                    ? `Checked ${formatTimeAgo(site.lastCheck.checked_at)}`
-                    : "No checks yet"}
-                </div>
-              </Link>
+                    {site.url}
+                  </div>
+                  <div
+                    className="mt-2 text-[11px]"
+                    style={{ color: "#8A8A8A", letterSpacing: "0.01em" }}
+                  >
+                    {site.lastCheck
+                      ? `Checked ${formatTimeAgo(site.lastCheck.checked_at)}`
+                      : "No checks yet"}
+                  </div>
+                </Link>
+                {isAdmin && (
+                  <div className="absolute top-3 right-3">
+                    <EditSiteButton
+                      siteId={site.id}
+                      name={site.name}
+                      url={site.url}
+                    />
+                  </div>
+                )}
+              </div>
             ))}
+            {isAdmin && <AddSiteCard />}
           </div>
         )}
       </section>
