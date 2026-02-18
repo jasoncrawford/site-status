@@ -1,0 +1,77 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { checkSite } from '@/lib/checker'
+
+export const maxDuration = 60
+
+export async function POST(request: NextRequest) {
+  const authHeader = request.headers.get('authorization')
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const supabase = createAdminClient()
+
+  const { data: sites, error: sitesError } = await supabase
+    .from('sites')
+    .select('*')
+
+  if (sitesError || !sites) {
+    return NextResponse.json({ error: 'Failed to fetch sites' }, { status: 500 })
+  }
+
+  if (sites.length === 0) {
+    return NextResponse.json({ message: 'No sites to check', checks: 0, incidents: 0 })
+  }
+
+  const results = await Promise.allSettled(
+    sites.map(async (site) => {
+      const result = await checkSite(site.url)
+      return { site, ...result }
+    })
+  )
+
+  let newIncidents = 0
+
+  for (const result of results) {
+    if (result.status === 'rejected') continue
+
+    const { site, status, statusCode, error } = result.value
+
+    const { data: check } = await supabase
+      .from('checks')
+      .insert({
+        site_id: site.id,
+        status,
+        status_code: statusCode,
+        error,
+      })
+      .select()
+      .single()
+
+    if (status === 'failure' && check) {
+      const { data: openIncident } = await supabase
+        .from('incidents')
+        .select('id')
+        .eq('site_id', site.id)
+        .eq('status', 'open')
+        .limit(1)
+        .single()
+
+      if (!openIncident) {
+        await supabase.from('incidents').insert({
+          site_id: site.id,
+          check_id: check.id,
+          status: 'open',
+        })
+        newIncidents++
+      }
+    }
+  }
+
+  return NextResponse.json({
+    message: 'Checks complete',
+    checks: results.length,
+    incidents: newIncidents,
+  })
+}
