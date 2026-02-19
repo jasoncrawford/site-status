@@ -5,7 +5,7 @@ import { sendIncidentAlert } from '@/lib/notifications'
 
 export const maxDuration = 60
 
-export async function POST(request: NextRequest) {
+async function handleCheckRun(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -94,3 +94,5 @@ export async function POST(request: NextRequest) {
     incidents: newIncidents,
   })
 }
+
+export { handleCheckRun as GET, handleCheckRun as POST }
