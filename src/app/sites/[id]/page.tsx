@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import type { Site, Check, Incident } from "@/lib/supabase/types"
 import { formatTimeAgo } from "@/lib/format"
+import EditSiteButton from "@/components/EditSiteButton"
 
 export const revalidate = 0
 
@@ -92,13 +93,7 @@ export default async function SiteDetailPage({
 
         {user && (
           <div className="flex items-center gap-2.5 shrink-0 pt-1.5">
-            <Link
-              href={`/sites/${site.id}/edit`}
-              className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded text-white no-underline"
-              style={{ backgroundColor: "#6B806B", border: "1px solid #6B806B" }}
-            >
-              Edit
-            </Link>
+            <EditSiteButton siteId={site.id} name={site.name} url={site.url} />
           </div>
         )}
       </div>

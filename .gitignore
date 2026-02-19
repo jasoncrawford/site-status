@@ -12,6 +12,8 @@ build/
 test-results/
 playwright-report/
 blob-report/
+e2e/.auth/
+e2e/.test-data.json
 
 # env files
 .env*.local
@@ -23,3 +25,4 @@ next-env.d.ts
 
 # local settings
 .claude/settings.local.json
+.vercel
