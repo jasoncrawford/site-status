@@ -20,7 +20,7 @@ vi.mock('@/lib/supabase/admin', () => ({
   createAdminClient: () => mockSupabase,
 }))
 
-import { POST } from '@/app/api/checks/run/route'
+import { GET, POST } from '@/app/api/checks/run/route'
 import { checkSite } from '@/lib/checker'
 
 describe('POST /api/checks/run', () => {
@@ -47,6 +47,25 @@ describe('POST /api/checks/run', () => {
 
     const response = await POST(request)
     expect(response.status).toBe(401)
+  })
+
+  test('returns 500 when sites query fails', async () => {
+    mockFrom.mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        data: null,
+        error: { message: 'connection error' },
+      }),
+    })
+
+    const request = new NextRequest('http://localhost/api/checks/run', {
+      method: 'POST',
+      headers: { authorization: 'Bearer test-secret' },
+    })
+
+    const response = await POST(request)
+    expect(response.status).toBe(500)
+    const body = await response.json()
+    expect(body.error).toBe('Failed to fetch sites')
   })
 
   test('returns empty result when no sites exist', async () => {
@@ -137,6 +156,88 @@ describe('POST /api/checks/run', () => {
     })
   })
 
+  test('records checks without creating incidents for successful checks', async () => {
+    const site = { id: 'site-1', name: 'Test', url: 'https://example.com' }
+    const mockInsert = vi.fn().mockReturnValue({
+      select: () => ({
+        single: () => ({
+          data: { id: 'check-1', site_id: 'site-1', status: 'success' },
+        }),
+      }),
+    })
+
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'sites') {
+        return { select: () => ({ data: [site], error: null }) }
+      }
+      if (table === 'checks') {
+        return { insert: mockInsert }
+      }
+      return {}
+    })
+
+    vi.mocked(checkSite).mockResolvedValue({
+      status: 'success',
+      statusCode: 200,
+      error: null,
+    })
+
+    const request = new NextRequest('http://localhost/api/checks/run', {
+      method: 'POST',
+      headers: { authorization: 'Bearer test-secret' },
+    })
+
+    const response = await POST(request)
+    const body = await response.json()
+    expect(body.checks).toBe(1)
+    expect(body.incidents).toBe(0)
+    expect(mockInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'success', status_code: 200 })
+    )
+    expect(mockSendIncidentAlert).not.toHaveBeenCalled()
+  })
+
+  test('skips rejected promises from Promise.allSettled', async () => {
+    const site1 = { id: 'site-1', name: 'Test1', url: 'https://example.com' }
+    const site2 = { id: 'site-2', name: 'Test2', url: 'https://example2.com' }
+
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'sites') {
+        return { select: () => ({ data: [site1, site2], error: null }) }
+      }
+      if (table === 'checks') {
+        return {
+          insert: () => ({
+            select: () => ({
+              single: () => ({
+                data: { id: 'check-1', site_id: 'site-2', status: 'success' },
+              }),
+            }),
+          }),
+        }
+      }
+      return {}
+    })
+
+    vi.mocked(checkSite)
+      .mockRejectedValueOnce(new Error('DNS resolution failed'))
+      .mockResolvedValueOnce({
+        status: 'success',
+        statusCode: 200,
+        error: null,
+      })
+
+    const request = new NextRequest('http://localhost/api/checks/run', {
+      method: 'POST',
+      headers: { authorization: 'Bearer test-secret' },
+    })
+
+    const response = await POST(request)
+    const body = await response.json()
+    expect(body.checks).toBe(2)
+    expect(body.incidents).toBe(0)
+  })
+
   test('does not send email for existing open incident', async () => {
     const site = { id: 'site-1', name: 'Test', url: 'https://example.com' }
 
@@ -186,5 +287,40 @@ describe('POST /api/checks/run', () => {
     const body = await response.json()
     expect(body.incidents).toBe(0)
     expect(mockSendIncidentAlert).not.toHaveBeenCalled()
+  })
+})
+
+describe('GET /api/checks/run (Vercel cron)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    process.env.CRON_SECRET = 'test-secret'
+  })
+
+  test('GET handler works identically to POST (used by Vercel cron)', async () => {
+    mockFrom.mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        data: [],
+        error: null,
+      }),
+    })
+
+    const request = new NextRequest('http://localhost/api/checks/run', {
+      method: 'GET',
+      headers: { authorization: 'Bearer test-secret' },
+    })
+
+    const response = await GET(request)
+    const body = await response.json()
+    expect(body).toEqual({ message: 'No sites to check', checks: 0, incidents: 0 })
+  })
+
+  test('GET handler rejects invalid auth', async () => {
+    const request = new NextRequest('http://localhost/api/checks/run', {
+      method: 'GET',
+      headers: { authorization: 'Bearer wrong' },
+    })
+
+    const response = await GET(request)
+    expect(response.status).toBe(401)
   })
 })
