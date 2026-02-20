@@ -30,10 +30,14 @@ test("adds a new site", async ({ page }) => {
   await page.goto("/");
   await page.getByText("Add site").click();
 
-  await page.getByPlaceholder("Site name").fill("New Test Site");
-  await page.getByPlaceholder("https://example.com").fill("https://example.com/test");
-  await page.getByRole("button", { name: "Add" }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
 
+  await dialog.getByLabel("Name").fill("New Test Site");
+  await dialog.getByLabel("URL").fill("https://example.com/test");
+  await dialog.getByRole("button", { name: "Add" }).click();
+
+  await expect(dialog).not.toBeVisible();
   await expect(page.getByText("New Test Site")).toBeVisible();
   await expect(page.getByText("https://example.com/test")).toBeVisible();
 });
@@ -42,41 +46,57 @@ test("cancels adding a site", async ({ page }) => {
   await page.goto("/");
   await page.getByText("Add site").click();
 
-  await expect(page.getByPlaceholder("Site name")).toBeVisible();
-  await page.getByRole("button", { name: "Cancel" }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
 
-  await expect(page.getByPlaceholder("Site name")).not.toBeVisible();
+  await dialog.getByRole("button", { name: "Cancel" }).click();
+  await expect(dialog).not.toBeVisible();
   await expect(page.getByText("Add site")).toBeVisible();
+});
+
+test("dismisses dialog with Escape key", async ({ page }) => {
+  await page.goto("/");
+  await page.getByText("Add site").click();
+
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+
+  await page.keyboard.press("Escape");
+  await expect(dialog).not.toBeVisible();
 });
 
 test("edits a site name", async ({ page }) => {
   await page.goto("/");
 
-  // Hover the site card to reveal the edit button
+  // Hover the site card to reveal the edit button, click it
   const siteCard = page.locator(".group").filter({ hasText: "E2E Test Site" });
   await siteCard.hover();
   await siteCard.getByTitle("Edit site").click({ force: true });
 
-  // Clear and fill the name field
-  const nameInput = page.locator('input[name="name"]');
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+
+  const nameInput = dialog.getByLabel("Name");
   await nameInput.clear();
   await nameInput.fill("Renamed Site");
-  await page.getByRole("button", { name: "Save" }).click();
+  await dialog.getByRole("button", { name: "Save" }).click();
 
+  await expect(dialog).not.toBeVisible();
   await expect(page.getByText("Renamed Site")).toBeVisible();
 });
 
-test("site detail Edit button opens edit form", async ({ page, testData }) => {
+test("site detail Edit button opens edit dialog", async ({ page, testData }) => {
   await page.goto(`/sites/${testData.siteId}`);
-  await page.getByTitle("Edit site").click();
+  await page.getByRole("button", { name: "Edit" }).click();
 
-  // Should show the inline edit form with name and URL fields
-  await expect(page.locator('input[name="name"]')).toBeVisible();
-  await expect(page.locator('input[name="url"]')).toBeVisible();
-  await expect(page.getByRole("button", { name: "Save" })).toBeVisible();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByLabel("Name")).toBeVisible();
+  await expect(dialog.getByLabel("URL")).toBeVisible();
+  await expect(dialog.getByRole("button", { name: "Save" })).toBeVisible();
 });
 
-test("deletes a site", async ({ page, adminClient }) => {
+test("deletes a site with confirmation", async ({ page, adminClient }) => {
   // First create a site to delete
   await adminClient
     .from("sites")
@@ -90,8 +110,16 @@ test("deletes a site", async ({ page, adminClient }) => {
   await siteCard.hover();
   await siteCard.getByTitle("Edit site").click({ force: true });
 
-  // Click delete
-  await page.getByRole("button", { name: "Delete" }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
 
+  // Click Delete — should show confirmation
+  await dialog.getByRole("button", { name: "Delete" }).click();
+  await expect(dialog.getByText("Delete?")).toBeVisible();
+
+  // Confirm deletion
+  await dialog.getByRole("button", { name: "Yes" }).click();
+
+  await expect(dialog).not.toBeVisible();
   await expect(page.getByText("Site To Delete")).not.toBeVisible();
 });
