@@ -23,12 +23,12 @@ test.afterEach(async ({ adminClient }) => {
 
 test("shows Add site card when authenticated", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByText("Add site")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Add site" })).toBeVisible();
 });
 
 test("adds a new site", async ({ page }) => {
   await page.goto("/");
-  await page.getByText("Add site").click();
+  await page.getByRole("button", { name: "Add site" }).click();
 
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
@@ -44,19 +44,19 @@ test("adds a new site", async ({ page }) => {
 
 test("cancels adding a site", async ({ page }) => {
   await page.goto("/");
-  await page.getByText("Add site").click();
+  await page.getByRole("button", { name: "Add site" }).click();
 
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
 
   await dialog.getByRole("button", { name: "Cancel" }).click();
   await expect(dialog).not.toBeVisible();
-  await expect(page.getByText("Add site")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Add site" })).toBeVisible();
 });
 
 test("dismisses dialog with Escape key", async ({ page }) => {
   await page.goto("/");
-  await page.getByText("Add site").click();
+  await page.getByRole("button", { name: "Add site" }).click();
 
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();

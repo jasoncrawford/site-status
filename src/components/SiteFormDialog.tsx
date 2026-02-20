@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useId, useRef, useState } from "react"
 import { addSite, editSite, deleteSite } from "@/app/sites/actions"
 
 export default function SiteFormDialog({
@@ -16,6 +16,7 @@ export default function SiteFormDialog({
   url?: string
   trigger: React.ReactNode
 }) {
+  const id = useId()
   const dialogRef = useRef<HTMLDialogElement>(null)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
 
@@ -71,14 +72,14 @@ export default function SiteFormDialog({
           >
             <div className="flex flex-col gap-1.5">
               <label
-                htmlFor="site-name"
+                htmlFor={`${id}-name`}
                 className="text-xs font-medium"
                 style={{ color: "#5C5C5C" }}
               >
                 Name
               </label>
               <input
-                id="site-name"
+                id={`${id}-name`}
                 type="text"
                 name="name"
                 defaultValue={name ?? ""}
@@ -95,14 +96,14 @@ export default function SiteFormDialog({
             </div>
             <div className="flex flex-col gap-1.5">
               <label
-                htmlFor="site-url"
+                htmlFor={`${id}-url`}
                 className="text-xs font-medium"
                 style={{ color: "#5C5C5C" }}
               >
                 URL
               </label>
               <input
-                id="site-url"
+                id={`${id}-url`}
                 type="url"
                 name="url"
                 defaultValue={url ?? ""}
