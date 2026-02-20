@@ -184,13 +184,12 @@ export default async function StatusPage() {
                   </div>
                 </Link>
                 {isAdmin && (
-                  <div className="absolute top-3 right-3">
-                    <EditSiteButton
-                      siteId={site.id}
-                      name={site.name}
-                      url={site.url}
-                    />
-                  </div>
+                  <EditSiteButton
+                    siteId={site.id}
+                    name={site.name}
+                    url={site.url}
+                    overlay
+                  />
                 )}
               </div>
             ))}

@@ -7,10 +7,12 @@ export default function EditSiteButton({
   siteId,
   name,
   url,
+  overlay,
 }: {
   siteId: string
   name: string
   url: string
+  overlay?: boolean
 }) {
   const [isEditing, setIsEditing] = useState(false)
 
@@ -18,7 +20,11 @@ export default function EditSiteButton({
     return (
       <button
         onClick={() => setIsEditing(true)}
-        className="flex items-center justify-center rounded cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+        className={`flex items-center justify-center rounded cursor-pointer flex-shrink-0${
+          overlay
+            ? " absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity"
+            : ""
+        }`}
         style={{
           width: "28px",
           height: "28px",
@@ -47,7 +53,7 @@ export default function EditSiteButton({
 
   return (
     <div
-      className="absolute inset-0 rounded z-10"
+      className={overlay ? "absolute inset-0 rounded z-10" : "rounded"}
       style={{
         backgroundColor: "#FFFFFF",
         border: "1px solid #E8E4DF",
