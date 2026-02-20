@@ -3,7 +3,7 @@ import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import type { Site, Check, Incident } from "@/lib/supabase/types"
 import { formatTimeAgo } from "@/lib/format"
-import EditSiteButton from "@/components/EditSiteButton"
+import SiteFormDialog from "@/components/SiteFormDialog"
 
 export const revalidate = 0
 
@@ -93,7 +93,24 @@ export default async function SiteDetailPage({
 
         {user && (
           <div className="flex items-center gap-2.5 shrink-0 pt-1.5">
-            <EditSiteButton siteId={site.id} name={site.name} url={site.url} />
+            <SiteFormDialog
+              mode="edit"
+              siteId={site.id}
+              name={site.name}
+              url={site.url}
+              trigger={
+                <button
+                  className="text-sm font-medium px-4 py-2 rounded cursor-pointer"
+                  style={{
+                    backgroundColor: "transparent",
+                    color: "#5C5C5C",
+                    border: "1px solid #E8E4DF",
+                  }}
+                >
+                  Edit
+                </button>
+              }
+            />
           </div>
         )}
       </div>
