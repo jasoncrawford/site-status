@@ -12,7 +12,7 @@ export async function addSite(formData: FormData) {
 
   if (!user) redirect("/login")
 
-  const name = (formData.get("name") as string)?.trim()
+  const name = (formData.get("site_name") as string)?.trim()
   const url = (formData.get("url") as string)?.trim()
 
   if (!name || !url) return
@@ -29,7 +29,7 @@ export async function editSite(siteId: string, formData: FormData) {
 
   if (!user) redirect("/login")
 
-  const name = (formData.get("name") as string)?.trim()
+  const name = (formData.get("site_name") as string)?.trim()
   const url = (formData.get("url") as string)?.trim()
 
   if (!name || !url) return
