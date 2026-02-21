@@ -82,11 +82,13 @@ export default function SiteFormDialog({
               <input
                 id={`${id}-name`}
                 type="text"
-                name="name"
+                name="site_name"
                 defaultValue={name ?? ""}
                 placeholder="Site name"
                 required
                 autoFocus
+                autoComplete="off"
+                data-1p-ignore
                 className="text-sm px-3 py-2 rounded outline-none"
                 style={{
                   border: "1px solid #E8E4DF",
