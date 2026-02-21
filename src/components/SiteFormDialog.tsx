@@ -43,6 +43,7 @@ export default function SiteFormDialog({
           boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
           maxWidth: "400px",
           width: "calc(100% - 48px)",
+          margin: "auto",
         }}
         onClick={(e) => {
           // Clicks on the backdrop hit the dialog element itself.

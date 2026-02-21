@@ -102,9 +102,8 @@ export default async function SiteDetailPage({
                 <button
                   className="text-sm font-medium px-4 py-2 rounded cursor-pointer"
                   style={{
-                    backgroundColor: "transparent",
-                    color: "#5C5C5C",
-                    border: "1px solid #E8E4DF",
+                    backgroundColor: "#2C2C2C",
+                    color: "#FFFFFF",
                   }}
                 >
                   Edit
