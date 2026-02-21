@@ -2,58 +2,65 @@
 -- This file runs automatically when a branch DB is created via Supabase Branching.
 
 -- ============================================================================
--- Test auth user: test@example.com / testpassword123
+-- Test auth user: test@example.com / test00
 -- ============================================================================
 
-INSERT INTO auth.users (
-  id,
-  instance_id,
-  aud,
-  role,
-  email,
-  encrypted_password,
-  email_confirmed_at,
-  raw_app_meta_data,
-  raw_user_meta_data,
-  created_at,
-  updated_at,
-  confirmation_token,
-  recovery_token
-) VALUES (
-  'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-  '00000000-0000-0000-0000-000000000000',
-  'authenticated',
-  'authenticated',
-  'test@example.com',
-  crypt('testpassword123', gen_salt('bf')),
-  now(),
-  '{"provider": "email", "providers": ["email"]}',
-  '{}',
-  now(),
-  now(),
-  '',
-  ''
-);
+DO $$
+DECLARE
+  test_user_id UUID := 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+  test_email TEXT := 'test@example.com';
+  test_encrypted_pw TEXT := crypt('test00', gen_salt('bf'));
+BEGIN
 
-INSERT INTO auth.identities (
-  id,
-  user_id,
-  identity_data,
-  provider,
-  provider_id,
-  last_sign_in_at,
-  created_at,
-  updated_at
-) VALUES (
-  'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-  'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-  jsonb_build_object('sub', 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'email', 'test@example.com'),
-  'email',
-  'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-  now(),
-  now(),
-  now()
-);
+  INSERT INTO auth.users (
+    id,
+    instance_id,
+    aud,
+    role,
+    email,
+    encrypted_password,
+    email_confirmed_at,
+    last_sign_in_at,
+    raw_app_meta_data,
+    raw_user_meta_data,
+    created_at,
+    updated_at
+  ) VALUES (
+    test_user_id,
+    '00000000-0000-0000-0000-000000000000',
+    'authenticated',
+    'authenticated',
+    test_email,
+    test_encrypted_pw,
+    now(),
+    now(),
+    '{"provider": "email", "providers": ["email"]}',
+    '{}',
+    now(),
+    now()
+  );
+
+  INSERT INTO auth.identities (
+    id,
+    user_id,
+    identity_data,
+    provider,
+    provider_id,
+    last_sign_in_at,
+    created_at,
+    updated_at
+  ) VALUES (
+    test_user_id,
+    test_user_id,
+    format('{"sub": "%s", "email": "%s"}', test_user_id, test_email)::jsonb,
+    'email',
+    test_user_id,
+    now(),
+    now(),
+    now()
+  );
+
+END $$;
 
 -- ============================================================================
 -- Sample sites
