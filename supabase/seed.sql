@@ -2,7 +2,7 @@
 -- This file runs automatically when a branch DB is created via Supabase Branching.
 
 -- ============================================================================
--- Test auth user: test@example.com / test
+-- Test auth user: test@example.com / test00
 -- ============================================================================
 
 INSERT INTO auth.users (
@@ -25,7 +25,7 @@ INSERT INTO auth.users (
   'authenticated',
   'authenticated',
   'test@example.com',
-  crypt('test', gen_salt('bf')),
+  crypt('test00', gen_salt('bf')),
   now(),
   '{"provider": "email", "providers": ["email"]}',
   '{}',
