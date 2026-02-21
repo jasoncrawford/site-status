@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import type { Site, Check, Incident } from "@/lib/supabase/types"
 import { formatTimeAgo, formatDuration } from "@/lib/format"
 import AddSiteCard from "@/components/AddSiteCard"
-import EditSiteButton from "@/components/EditSiteButton"
+import SiteFormDialog from "@/components/SiteFormDialog"
 import RealtimeStatusPage from "@/components/RealtimeStatusPage"
 
 export const revalidate = 0
@@ -184,12 +184,41 @@ export default async function StatusPage() {
                   </div>
                 </Link>
                 {isAdmin && (
-                  <EditSiteButton
-                    siteId={site.id}
-                    name={site.name}
-                    url={site.url}
-                    overlay
-                  />
+                  <div className="absolute top-3 right-3 z-10">
+                    <SiteFormDialog
+                      mode="edit"
+                      siteId={site.id}
+                      name={site.name}
+                      url={site.url}
+                      trigger={
+                        <button
+                          className="flex items-center justify-center rounded cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                          style={{
+                            width: "28px",
+                            height: "28px",
+                            color: "#5C5C5C",
+                            background: "transparent",
+                            border: "none",
+                          }}
+                          title="Edit site"
+                        >
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 16 16"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M11.5 1.5l3 3-9 9H2.5v-3z" />
+                            <path d="M10 3l3 3" />
+                          </svg>
+                        </button>
+                      }
+                    />
+                  </div>
                 )}
               </div>
             ))}
