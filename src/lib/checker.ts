@@ -4,6 +4,28 @@ export type CheckResult = {
   error: string | null
 }
 
+export type SiteStatus = 'up' | 'failures' | 'transient_failures'
+
+const SOFT_FAILURE_STATUS_CODES = [502, 503, 504]
+
+export function isSoftFailure(statusCode: number | null, error: string | null): boolean {
+  if (statusCode !== null && SOFT_FAILURE_STATUS_CODES.includes(statusCode)) return true
+  if (statusCode === null && error === 'Connection timeout') return true
+  return false
+}
+
+export function computeSiteStatus(
+  recentChecks: { status: string; status_code: number | null; error: string | null }[]
+): SiteStatus {
+  const failures = recentChecks.filter(c => c.status === 'failure')
+  if (failures.length === 0) return 'up'
+
+  const hasHardFailure = failures.some(c => !isSoftFailure(c.status_code, c.error))
+  if (hasHardFailure) return 'failures'
+
+  return 'transient_failures'
+}
+
 export async function checkSite(url: string): Promise<CheckResult> {
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 30000)

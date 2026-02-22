@@ -2,8 +2,15 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import type { Site, Check, Incident } from "@/lib/supabase/types"
+import { computeSiteStatus, type SiteStatus } from "@/lib/checker"
 import { formatTimeAgo } from "@/lib/format"
 import SiteFormDialog from "@/components/SiteFormDialog"
+
+const STATUS_CONFIG: Record<SiteStatus, { color: string; label: string }> = {
+  up: { color: "#2DA44E", label: "Up" },
+  failures: { color: "#C4453C", label: "Failures" },
+  transient_failures: { color: "#D4A017", label: "Transient Failures" },
+}
 
 export const revalidate = 0
 
@@ -31,14 +38,17 @@ async function getSiteData(id: string) {
     .order("checked_at", { ascending: false })
     .limit(50)
 
-  const latestCheck = checks?.[0] ?? null
-  const isDown = latestCheck?.status === "failure"
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
+  const recentChecks = (checks ?? []).filter(
+    (c) => new Date(c.checked_at) > oneHourAgo
+  )
+  const siteStatus = computeSiteStatus(recentChecks)
 
   return {
     site: site as Site,
     incidents: (incidents ?? []) as (Incident & { check: Check })[],
     checks: (checks ?? []) as Check[],
-    isDown,
+    siteStatus,
   }
 }
 
@@ -51,7 +61,8 @@ export default async function SiteDetailPage({
   const data = await getSiteData(id)
   if (!data) notFound()
 
-  const { site, incidents, checks, isDown } = data
+  const { site, incidents, checks, siteStatus } = data
+  const statusConfig = STATUS_CONFIG[siteStatus]
   const supabase = await createClient()
   const {
     data: { user },
@@ -83,10 +94,10 @@ export default async function SiteDetailPage({
           <div className="inline-flex items-center gap-2 text-sm font-semibold">
             <span
               className="w-2.5 h-2.5 rounded-full"
-              style={{ backgroundColor: isDown ? "#C4453C" : "#2DA44E" }}
+              style={{ backgroundColor: statusConfig.color }}
             />
-            <span style={{ color: isDown ? "#C4453C" : "#2DA44E" }}>
-              {isDown ? "Down" : "Up"}
+            <span style={{ color: statusConfig.color }}>
+              {statusConfig.label}
             </span>
           </div>
         </div>

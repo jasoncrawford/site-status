@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import type { Site, Check, Incident } from "@/lib/supabase/types"
+import { computeSiteStatus, type SiteStatus } from "@/lib/checker"
 import { formatTimeAgo, formatDuration } from "@/lib/format"
 import AddSiteCard from "@/components/AddSiteCard"
 import SiteFormDialog from "@/components/SiteFormDialog"
@@ -8,8 +9,14 @@ import RealtimeStatusPage from "@/components/RealtimeStatusPage"
 
 export const revalidate = 0
 
-type SiteWithLastCheck = Site & { lastCheck: Check | null }
+type SiteWithStatus = Site & { lastCheck: Check | null; siteStatus: SiteStatus }
 type IncidentWithSite = Incident & { site: Site; check: Check }
+
+const STATUS_DOT_COLORS: Record<SiteStatus, string> = {
+  up: "#2DA44E",
+  failures: "#C4453C",
+  transient_failures: "#D4A017",
+}
 
 async function getStatusData() {
   const supabase = await createClient()
@@ -25,18 +32,26 @@ async function getStatusData() {
     .eq("status", "open")
     .order("opened_at", { ascending: false })
 
-  const sitesWithChecks: SiteWithLastCheck[] = []
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
+  const sitesWithStatus: SiteWithStatus[] = []
   for (const site of sites ?? []) {
-    const { data: checks } = await supabase
+    const { data: lastChecks } = await supabase
       .from("checks")
       .select("*")
       .eq("site_id", site.id)
       .order("checked_at", { ascending: false })
       .limit(1)
 
-    sitesWithChecks.push({
+    const { data: recentChecks } = await supabase
+      .from("checks")
+      .select("status, status_code, error")
+      .eq("site_id", site.id)
+      .gte("checked_at", oneHourAgo)
+
+    sitesWithStatus.push({
       ...site,
-      lastCheck: checks?.[0] ?? null,
+      lastCheck: lastChecks?.[0] ?? null,
+      siteStatus: computeSiteStatus(recentChecks ?? []),
     })
   }
 
@@ -45,7 +60,7 @@ async function getStatusData() {
   } = await supabase.auth.getUser()
 
   return {
-    sites: sitesWithChecks,
+    sites: sitesWithStatus,
     incidents: (openIncidents ?? []) as IncidentWithSite[],
     isAdmin: !!user,
   }
@@ -154,10 +169,7 @@ export default async function StatusPage() {
                     <span
                       className="w-2 h-2 rounded-full shrink-0"
                       style={{
-                        backgroundColor:
-                          site.lastCheck?.status === "failure"
-                            ? "#C4453C"
-                            : "#2DA44E",
+                        backgroundColor: STATUS_DOT_COLORS[site.siteStatus],
                       }}
                     />
                     <span
