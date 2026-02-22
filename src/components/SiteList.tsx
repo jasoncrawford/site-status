@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import Link from "next/link"
 import {
   DndContext,
@@ -199,6 +199,14 @@ export default function SiteList({
   isAdmin: boolean
 }) {
   const [sites, setSites] = useState(initialSites)
+
+  // Sync local state when server data changes (after add/edit/delete revalidation)
+  const serverKey = initialSites.map((s) => `${s.id}:${s.name}:${s.url}`).join("|")
+  const prevServerKey = useRef(serverKey)
+  if (serverKey !== prevServerKey.current) {
+    prevServerKey.current = serverKey
+    setSites(initialSites)
+  }
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
