@@ -146,43 +146,42 @@ export default async function StatusPage() {
               >
                 <Link
                   href={`/sites/${site.id}`}
-                  className="block no-underline"
-                  style={{ color: "inherit" }}
-                >
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <span
-                        className="w-2 h-2 rounded-full shrink-0"
-                        style={{
-                          backgroundColor:
-                            site.lastCheck?.status === "failure"
-                              ? "#C4453C"
-                              : "#2DA44E",
-                        }}
-                      />
-                      <span
-                        className="text-sm font-bold"
-                        style={{ color: "#1A1A1A" }}
-                      >
-                        {site.name}
-                      </span>
-                    </div>
+                  className="absolute inset-0 z-0"
+                  aria-label={site.name}
+                />
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="flex items-center gap-2.5 min-w-0">
                     <span
-                      className="text-xs"
-                      style={{ color: "#5C5C5C" }}
-                    >
-                      {site.url}
-                    </span>
+                      className="w-2 h-2 rounded-full shrink-0"
+                      style={{
+                        backgroundColor:
+                          site.lastCheck?.status === "failure"
+                            ? "#C4453C"
+                            : "#2DA44E",
+                      }}
+                    />
                     <span
-                      className="ml-auto text-[11px] shrink-0"
-                      style={{ color: "#8A8A8A", letterSpacing: "0.01em" }}
+                      className="text-sm font-bold"
+                      style={{ color: "#1A1A1A" }}
                     >
-                      {site.lastCheck
-                        ? `Checked ${formatTimeAgo(site.lastCheck.checked_at)}`
-                        : "No checks yet"}
+                      {site.name}
                     </span>
                   </div>
-                </Link>
+                  <span
+                    className="text-xs"
+                    style={{ color: "#5C5C5C" }}
+                  >
+                    {site.url}
+                  </span>
+                  <span
+                    className="ml-auto text-[11px] shrink-0"
+                    style={{ color: "#8A8A8A", letterSpacing: "0.01em" }}
+                  >
+                    {site.lastCheck
+                      ? `Checked ${formatTimeAgo(site.lastCheck.checked_at)}`
+                      : "No checks yet"}
+                  </span>
+                </div>
                 {isAdmin && (
                   <div className="absolute top-1/2 -translate-y-1/2 right-3 z-10">
                     <SiteFormDialog
