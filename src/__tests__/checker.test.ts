@@ -1,5 +1,5 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest'
-import { checkSite } from '@/lib/checker'
+import { checkSite, isSoftFailure } from '@/lib/checker'
 
 describe('checkSite', () => {
   beforeEach(() => {
@@ -63,3 +63,38 @@ describe('checkSite', () => {
     })
   })
 })
+
+describe('isSoftFailure', () => {
+  test('HTTP 502 is a soft failure', () => {
+    expect(isSoftFailure(502, 'HTTP 502')).toBe(true)
+  })
+
+  test('HTTP 503 is a soft failure', () => {
+    expect(isSoftFailure(503, 'HTTP 503')).toBe(true)
+  })
+
+  test('HTTP 504 is a soft failure', () => {
+    expect(isSoftFailure(504, 'HTTP 504')).toBe(true)
+  })
+
+  test('Connection timeout is a soft failure', () => {
+    expect(isSoftFailure(null, 'Connection timeout')).toBe(true)
+  })
+
+  test('HTTP 500 is a hard failure', () => {
+    expect(isSoftFailure(500, 'HTTP 500')).toBe(false)
+  })
+
+  test('HTTP 404 is a hard failure', () => {
+    expect(isSoftFailure(404, 'HTTP 404')).toBe(false)
+  })
+
+  test('DNS resolution failure is a hard failure', () => {
+    expect(isSoftFailure(null, 'getaddrinfo ENOTFOUND example.com')).toBe(false)
+  })
+
+  test('SSL error is a hard failure', () => {
+    expect(isSoftFailure(null, 'unable to verify the first certificate')).toBe(false)
+  })
+})
+

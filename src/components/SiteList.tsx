@@ -21,6 +21,7 @@ import {
 import { CSS } from "@dnd-kit/utilities"
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers"
 import type { Site, Check } from "@/lib/supabase/types"
+import { isSoftFailure } from "@/lib/checker"
 import { formatTimeAgo } from "@/lib/format"
 import { reorderSites } from "@/app/sites/actions"
 import SiteFormDialog from "@/components/SiteFormDialog"
@@ -124,7 +125,9 @@ function SiteCard({
             style={{
               backgroundColor:
                 site.lastCheck?.status === "failure"
-                  ? "#C4453C"
+                  ? isSoftFailure(site.lastCheck.status_code, site.lastCheck.error)
+                    ? "#D4A017"
+                    : "#C4453C"
                   : "#2DA44E",
             }}
           />

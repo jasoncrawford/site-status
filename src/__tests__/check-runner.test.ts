@@ -1,10 +1,14 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest'
 import { NextRequest } from 'next/server'
 
-// Mock the checker module
-vi.mock('@/lib/checker', () => ({
-  checkSite: vi.fn(),
-}))
+// Mock the checker module — keep real isSoftFailure, mock checkSite
+vi.mock('@/lib/checker', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/checker')>()
+  return {
+    ...actual,
+    checkSite: vi.fn(),
+  }
+})
 
 // Mock the notifications module
 const mockSendIncidentAlert = vi.fn()
@@ -86,7 +90,7 @@ describe('POST /api/checks/run', () => {
     expect(body).toEqual({ message: 'No sites to check', checks: 0, incidents: 0 })
   })
 
-  test('records checks and opens incidents for failures, sends email', async () => {
+  test('hard failure (HTTP 500) creates incident immediately, sends email', async () => {
     const site = { id: 'site-1', name: 'Test', url: 'https://example.com' }
 
     mockFrom.mockImplementation((table: string) => {
@@ -134,8 +138,8 @@ describe('POST /api/checks/run', () => {
 
     vi.mocked(checkSite).mockResolvedValue({
       status: 'failure',
-      statusCode: 503,
-      error: 'HTTP 503',
+      statusCode: 500,
+      error: 'HTTP 500',
     })
 
     const request = new NextRequest('http://localhost/api/checks/run', {
@@ -150,10 +154,209 @@ describe('POST /api/checks/run', () => {
     expect(mockSendIncidentAlert).toHaveBeenCalledWith({
       siteName: 'Test',
       siteUrl: 'https://example.com',
-      error: 'HTTP 503',
+      error: 'HTTP 500',
       incidentId: 'inc-1',
       contactEmails: ['alice@example.com'],
     })
+  })
+
+  test('single soft failure (HTTP 503) does not create incident', async () => {
+    const site = { id: 'site-1', name: 'Test', url: 'https://example.com' }
+
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'sites') {
+        return { select: () => ({ data: [site], error: null }) }
+      }
+      if (table === 'checks') {
+        return {
+          insert: () => ({
+            select: () => ({
+              single: () => ({
+                data: { id: 'check-1', site_id: 'site-1', status: 'failure' },
+              }),
+            }),
+          }),
+          select: () => ({
+            eq: () => ({
+              eq: () => ({
+                gte: () => ({
+                  data: [{ status_code: 503, error: 'HTTP 503' }],
+                }),
+              }),
+            }),
+          }),
+        }
+      }
+      if (table === 'incidents') {
+        return {
+          select: () => ({
+            eq: () => ({
+              eq: () => ({
+                limit: () => ({
+                  single: () => ({ data: null }),
+                }),
+              }),
+            }),
+          }),
+        }
+      }
+      return {}
+    })
+
+    vi.mocked(checkSite).mockResolvedValue({
+      status: 'failure',
+      statusCode: 503,
+      error: 'HTTP 503',
+    })
+
+    const request = new NextRequest('http://localhost/api/checks/run', {
+      method: 'POST',
+      headers: { authorization: 'Bearer test-secret' },
+    })
+
+    const response = await POST(request)
+    const body = await response.json()
+    expect(body.incidents).toBe(0)
+    expect(mockSendIncidentAlert).not.toHaveBeenCalled()
+  })
+
+  test('three soft failures within an hour creates incident', async () => {
+    const site = { id: 'site-1', name: 'Test', url: 'https://example.com' }
+
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'sites') {
+        return { select: () => ({ data: [site], error: null }) }
+      }
+      if (table === 'checks') {
+        return {
+          insert: () => ({
+            select: () => ({
+              single: () => ({
+                data: { id: 'check-3', site_id: 'site-1', status: 'failure' },
+              }),
+            }),
+          }),
+          select: () => ({
+            eq: () => ({
+              eq: () => ({
+                gte: () => ({
+                  data: [
+                    { status_code: 503, error: 'HTTP 503' },
+                    { status_code: 502, error: 'HTTP 502' },
+                    { status_code: 503, error: 'HTTP 503' },
+                  ],
+                }),
+              }),
+            }),
+          }),
+        }
+      }
+      if (table === 'incidents') {
+        return {
+          select: () => ({
+            eq: () => ({
+              eq: () => ({
+                limit: () => ({
+                  single: () => ({ data: null }),
+                }),
+              }),
+            }),
+          }),
+          insert: () => ({
+            select: () => ({
+              single: () => ({ data: { id: 'inc-1' } }),
+            }),
+          }),
+        }
+      }
+      if (table === 'contacts') {
+        return {
+          select: () => ({
+            data: [{ email: 'alice@example.com' }],
+          }),
+        }
+      }
+      return {}
+    })
+
+    vi.mocked(checkSite).mockResolvedValue({
+      status: 'failure',
+      statusCode: 503,
+      error: 'HTTP 503',
+    })
+
+    const request = new NextRequest('http://localhost/api/checks/run', {
+      method: 'POST',
+      headers: { authorization: 'Bearer test-secret' },
+    })
+
+    const response = await POST(request)
+    const body = await response.json()
+    expect(body.incidents).toBe(1)
+    expect(mockSendIncidentAlert).toHaveBeenCalled()
+  })
+
+  test('two soft failures within an hour does not create incident', async () => {
+    const site = { id: 'site-1', name: 'Test', url: 'https://example.com' }
+
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'sites') {
+        return { select: () => ({ data: [site], error: null }) }
+      }
+      if (table === 'checks') {
+        return {
+          insert: () => ({
+            select: () => ({
+              single: () => ({
+                data: { id: 'check-2', site_id: 'site-1', status: 'failure' },
+              }),
+            }),
+          }),
+          select: () => ({
+            eq: () => ({
+              eq: () => ({
+                gte: () => ({
+                  data: [
+                    { status_code: 503, error: 'HTTP 503' },
+                    { status_code: 504, error: 'HTTP 504' },
+                  ],
+                }),
+              }),
+            }),
+          }),
+        }
+      }
+      if (table === 'incidents') {
+        return {
+          select: () => ({
+            eq: () => ({
+              eq: () => ({
+                limit: () => ({
+                  single: () => ({ data: null }),
+                }),
+              }),
+            }),
+          }),
+        }
+      }
+      return {}
+    })
+
+    vi.mocked(checkSite).mockResolvedValue({
+      status: 'failure',
+      statusCode: 503,
+      error: 'HTTP 503',
+    })
+
+    const request = new NextRequest('http://localhost/api/checks/run', {
+      method: 'POST',
+      headers: { authorization: 'Bearer test-secret' },
+    })
+
+    const response = await POST(request)
+    const body = await response.json()
+    expect(body.incidents).toBe(0)
+    expect(mockSendIncidentAlert).not.toHaveBeenCalled()
   })
 
   test('records checks without creating incidents for successful checks', async () => {

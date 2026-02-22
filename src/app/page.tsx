@@ -26,7 +26,7 @@ async function getStatusData() {
 
   const sitesWithChecks: SiteWithLastCheck[] = []
   for (const site of sites ?? []) {
-    const { data: checks } = await supabase
+    const { data: lastChecks } = await supabase
       .from("checks")
       .select("*")
       .eq("site_id", site.id)
@@ -35,7 +35,7 @@ async function getStatusData() {
 
     sitesWithChecks.push({
       ...site,
-      lastCheck: checks?.[0] ?? null,
+      lastCheck: lastChecks?.[0] ?? null,
     })
   }
 
@@ -123,7 +123,7 @@ export default async function StatusPage() {
           className="text-xl font-bold mb-4"
           style={{ color: "#1A1A1A" }}
         >
-          Sites
+          Latest checks
         </h2>
 
         <SiteList sites={sites} isAdmin={isAdmin} />

@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import type { Incident, Site, Check } from "@/lib/supabase/types"
+import CheckLogTable from "@/components/CheckLogTable"
 import { resolveIncident } from "./actions"
 
 export const revalidate = 0
@@ -172,96 +173,15 @@ export default async function IncidentDetailPage({
         )}
       </div>
 
-      <div
-        className="rounded"
-        style={{
-          backgroundColor: "#FFFFFF",
-          border: "1px solid #E8E4DF",
-        }}
-      >
+      <section>
         <h2
-          className="text-[17px] font-bold px-7 pt-5 pb-4"
-          style={{ color: "#1A1A1A", borderBottom: "1px solid #F0ECE8" }}
+          className="text-[22px] font-bold mb-4"
+          style={{ color: "#1A1A1A", letterSpacing: "-0.01em" }}
         >
           Checks Since Incident Opened
         </h2>
-        <ul className="list-none">
-          {checks.length === 0 ? (
-            <li className="px-7 py-3.5 text-sm" style={{ color: "#5C5C5C" }}>
-              No checks recorded since incident opened.
-            </li>
-          ) : (
-            checks.map((check, i) => {
-              const isTriggering = check.id === incident.check_id
-              return (
-                <li
-                  key={check.id}
-                  className="flex items-center gap-3.5 px-7 py-3.5 transition-colors"
-                  style={{
-                    borderBottom:
-                      i < checks.length - 1 ? "1px solid #F5F2EF" : undefined,
-                  }}
-                >
-                  <span
-                    className="w-2.5 h-2.5 rounded-full shrink-0"
-                    style={{
-                      backgroundColor:
-                        check.status === "failure" ? "#C4453C" : "#2DA44E",
-                    }}
-                  />
-                  <span
-                    className="text-sm font-medium min-w-[80px]"
-                    style={{
-                      color:
-                        check.status === "failure" ? "#C4453C" : "#2DA44E",
-                    }}
-                  >
-                    {check.status === "failure" ? "Failing" : "Passing"}
-                  </span>
-                  {check.status_code && (
-                    <span
-                      className="text-xs px-1.5 py-0.5 rounded"
-                      style={{
-                        fontFamily: '"SF Mono", SFMono-Regular, Consolas, monospace',
-                        color: "#5C5C5C",
-                        backgroundColor: "#F5F0EB",
-                        border: "1px solid #EBE7E2",
-                      }}
-                    >
-                      {check.status_code}
-                    </span>
-                  )}
-                  <span
-                    className="text-[13px] ml-auto whitespace-nowrap flex items-center gap-2.5"
-                    style={{ color: "#888888" }}
-                  >
-                    {isTriggering && (
-                      <span
-                        className="text-[11px] font-semibold uppercase px-2 py-0.5 rounded whitespace-nowrap"
-                        style={{
-                          letterSpacing: "0.04em",
-                          color: "#C4453C",
-                          backgroundColor: "rgba(196, 69, 60, 0.08)",
-                        }}
-                      >
-                        Triggered incident
-                      </span>
-                    )}
-                    {new Date(check.checked_at).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                    })},{" "}
-                    {new Date(check.checked_at).toLocaleTimeString("en-US", {
-                      hour: "numeric",
-                      minute: "2-digit",
-                    })}
-                  </span>
-                </li>
-              )
-            })
-          )}
-        </ul>
-      </div>
+        <CheckLogTable checks={checks} triggeringCheckId={incident.check_id} />
+      </section>
     </main>
   )
 }

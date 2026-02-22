@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { checkSite } from '@/lib/checker'
+import { checkSite, isSoftFailure } from '@/lib/checker'
 import { sendIncidentAlert } from '@/lib/notifications'
 
 export const maxDuration = 60
@@ -60,29 +60,51 @@ async function handleCheckRun(request: NextRequest) {
         .single()
 
       if (!openIncident) {
-        const { data: incident } = await supabase
-          .from('incidents')
-          .insert({
-            site_id: site.id,
-            check_id: check.id,
-            status: 'open',
-          })
-          .select('id')
-          .single()
-        newIncidents++
+        const soft = isSoftFailure(statusCode, error)
+        let shouldCreateIncident = !soft // Hard failures always create incidents
 
-        if (incident) {
-          const { data: contacts } = await supabase
-            .from('contacts')
-            .select('email')
+        if (soft) {
+          // Soft failures only create incidents when there are 3+ within the last hour
+          const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
+          const { data: recentFailures } = await supabase
+            .from('checks')
+            .select('status_code, error')
+            .eq('site_id', site.id)
+            .eq('status', 'failure')
+            .gte('checked_at', oneHourAgo)
 
-          await sendIncidentAlert({
-            siteName: site.name,
-            siteUrl: site.url,
-            error,
-            incidentId: incident.id,
-            contactEmails: (contacts ?? []).map((c: { email: string }) => c.email),
-          })
+          const softFailureCount = (recentFailures ?? []).filter(
+            (c: { status_code: number | null; error: string | null }) =>
+              isSoftFailure(c.status_code, c.error)
+          ).length
+          shouldCreateIncident = softFailureCount >= 3
+        }
+
+        if (shouldCreateIncident) {
+          const { data: incident } = await supabase
+            .from('incidents')
+            .insert({
+              site_id: site.id,
+              check_id: check.id,
+              status: 'open',
+            })
+            .select('id')
+            .single()
+          newIncidents++
+
+          if (incident) {
+            const { data: contacts } = await supabase
+              .from('contacts')
+              .select('email')
+
+            await sendIncidentAlert({
+              siteName: site.name,
+              siteUrl: site.url,
+              error,
+              incidentId: incident.id,
+              contactEmails: (contacts ?? []).map((c: { email: string }) => c.email),
+            })
+          }
         }
       }
     }

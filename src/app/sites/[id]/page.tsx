@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import type { Site, Check, Incident } from "@/lib/supabase/types"
 import { formatTimeAgo } from "@/lib/format"
 import SiteFormDialog from "@/components/SiteFormDialog"
+import CheckLogTable from "@/components/CheckLogTable"
 
 export const revalidate = 0
 
@@ -31,14 +32,10 @@ async function getSiteData(id: string) {
     .order("checked_at", { ascending: false })
     .limit(50)
 
-  const latestCheck = checks?.[0] ?? null
-  const isDown = latestCheck?.status === "failure"
-
   return {
     site: site as Site,
     incidents: (incidents ?? []) as (Incident & { check: Check })[],
     checks: (checks ?? []) as Check[],
-    isDown,
   }
 }
 
@@ -51,7 +48,7 @@ export default async function SiteDetailPage({
   const data = await getSiteData(id)
   if (!data) notFound()
 
-  const { site, incidents, checks, isDown } = data
+  const { site, incidents, checks } = data
   const supabase = await createClient()
   const {
     data: { user },
@@ -77,17 +74,8 @@ export default async function SiteDetailPage({
           >
             {site.name}
           </h1>
-          <div className="text-sm mb-3 break-all" style={{ color: "#5C5C5C" }}>
+          <div className="text-sm break-all" style={{ color: "#5C5C5C" }}>
             {site.url}
-          </div>
-          <div className="inline-flex items-center gap-2 text-sm font-semibold">
-            <span
-              className="w-2.5 h-2.5 rounded-full"
-              style={{ backgroundColor: isDown ? "#C4453C" : "#2DA44E" }}
-            />
-            <span style={{ color: isDown ? "#C4453C" : "#2DA44E" }}>
-              {isDown ? "Down" : "Up"}
-            </span>
           </div>
         </div>
 
@@ -186,94 +174,7 @@ export default async function SiteDetailPage({
         >
           Check Log
         </h2>
-        <div
-          className="rounded overflow-hidden"
-          style={{ backgroundColor: "#FFFFFF", border: "1px solid #E8E4DF" }}
-        >
-          <table className="w-full border-collapse">
-            <thead>
-              <tr>
-                <th
-                  className="text-left text-xs font-semibold uppercase px-5 py-2.5"
-                  style={{
-                    color: "#807B74",
-                    letterSpacing: "0.04em",
-                    borderBottom: "1px solid #E8E4DF",
-                    backgroundColor: "#FDFCFB",
-                  }}
-                >
-                  Timestamp
-                </th>
-                <th
-                  className="text-left text-xs font-semibold uppercase px-5 py-2.5"
-                  style={{
-                    color: "#807B74",
-                    letterSpacing: "0.04em",
-                    borderBottom: "1px solid #E8E4DF",
-                    backgroundColor: "#FDFCFB",
-                  }}
-                >
-                  Result
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {checks.length === 0 ? (
-                <tr>
-                  <td colSpan={2} className="px-5 py-3 text-sm" style={{ color: "#5C5C5C" }}>
-                    No checks recorded yet.
-                  </td>
-                </tr>
-              ) : (
-                checks.map((check, i) => {
-                  const isFailure = check.status === "failure"
-                  return (
-                    <tr
-                      key={check.id}
-                      className="transition-colors"
-                      style={{
-                        borderBottom:
-                          i < checks.length - 1 ? "1px solid #F0EEEA" : undefined,
-                      }}
-                    >
-                      <td
-                        className="px-5 py-2.5 text-sm whitespace-nowrap"
-                        style={{ color: "#5C5C5C", fontVariantNumeric: "tabular-nums" }}
-                      >
-                        {new Date(check.checked_at).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                        })}{" "}
-                        {new Date(check.checked_at).toLocaleTimeString("en-US", {
-                          hour: "numeric",
-                          minute: "2-digit",
-                        })}
-                      </td>
-                      <td className="px-5 py-2.5">
-                        <div className="flex items-center gap-2">
-                          <span
-                            className="w-1.5 h-1.5 rounded-full"
-                            style={{
-                              backgroundColor: isFailure ? "#C4453C" : "#2DA44E",
-                            }}
-                          />
-                          <span
-                            className="text-sm font-medium"
-                            style={{ color: isFailure ? "#C4453C" : "#2DA44E" }}
-                          >
-                            {isFailure
-                              ? check.error ?? "Failure"
-                              : `HTTP ${check.status_code ?? 200} OK`}
-                          </span>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+        <CheckLogTable checks={checks} />
       </section>
     </main>
   )

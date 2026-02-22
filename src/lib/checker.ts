@@ -4,6 +4,14 @@ export type CheckResult = {
   error: string | null
 }
 
+const SOFT_FAILURE_STATUS_CODES = [502, 503, 504]
+
+export function isSoftFailure(statusCode: number | null, error: string | null): boolean {
+  if (statusCode !== null && SOFT_FAILURE_STATUS_CODES.includes(statusCode)) return true
+  if (statusCode === null && error === 'Connection timeout') return true
+  return false
+}
+
 export async function checkSite(url: string): Promise<CheckResult> {
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 30000)
