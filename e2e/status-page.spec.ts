@@ -2,9 +2,9 @@ import { test, expect } from "@playwright/test";
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
-test("shows Sites heading", async ({ page }) => {
+test("shows Latest checks heading", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Sites" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Latest checks" })).toBeVisible();
 });
 
 test("shows seeded site card with name and URL", async ({ page }) => {
