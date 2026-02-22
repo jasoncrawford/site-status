@@ -6,19 +6,18 @@ export default function AddSiteCard() {
       mode="add"
       trigger={
         <button
-          className="flex items-center justify-center flex-col gap-1.5 rounded cursor-pointer w-full"
+          className="flex items-center gap-2 rounded cursor-pointer w-full"
           style={{
             background: "transparent",
             border: "1.5px dashed #D4CFC9",
-            padding: "24px 18px",
+            padding: "12px 18px",
             color: "#8A8A8A",
-            minHeight: "108px",
             transition: "border-color 0.15s, color 0.15s",
           }}
         >
           <svg
-            width="20"
-            height="20"
+            width="16"
+            height="16"
             viewBox="0 0 16 16"
             fill="none"
             stroke="currentColor"
