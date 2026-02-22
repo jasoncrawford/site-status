@@ -82,7 +82,7 @@ export default function SiteFormDialog({
               <input
                 id={`${id}-name`}
                 type="text"
-                name="site_name"
+                name="name"
                 defaultValue={name ?? ""}
                 placeholder="Site name"
                 required
