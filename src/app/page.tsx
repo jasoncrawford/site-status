@@ -173,6 +173,43 @@ export default async function StatusPage() {
                   >
                     {site.url}
                   </span>
+                  {isAdmin && (
+                    <div className="relative z-10">
+                      <SiteFormDialog
+                        mode="edit"
+                        siteId={site.id}
+                        name={site.name}
+                        url={site.url}
+                        trigger={
+                          <button
+                            className="flex items-center justify-center rounded cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                            style={{
+                              width: "28px",
+                              height: "28px",
+                              color: "#5C5C5C",
+                              background: "transparent",
+                              border: "none",
+                            }}
+                            title="Edit site"
+                          >
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 16 16"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M11.5 1.5l3 3-9 9H2.5v-3z" />
+                              <path d="M10 3l3 3" />
+                            </svg>
+                          </button>
+                        }
+                      />
+                    </div>
+                  )}
                   <span
                     className="ml-auto text-[11px] shrink-0"
                     style={{ color: "#8A8A8A", letterSpacing: "0.01em" }}
@@ -182,43 +219,6 @@ export default async function StatusPage() {
                       : "No checks yet"}
                   </span>
                 </div>
-                {isAdmin && (
-                  <div className="absolute top-1/2 -translate-y-1/2 right-3 z-10">
-                    <SiteFormDialog
-                      mode="edit"
-                      siteId={site.id}
-                      name={site.name}
-                      url={site.url}
-                      trigger={
-                        <button
-                          className="flex items-center justify-center rounded cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
-                          style={{
-                            width: "28px",
-                            height: "28px",
-                            color: "#5C5C5C",
-                            background: "transparent",
-                            border: "none",
-                          }}
-                          title="Edit site"
-                        >
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 16 16"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <path d="M11.5 1.5l3 3-9 9H2.5v-3z" />
-                            <path d="M10 3l3 3" />
-                          </svg>
-                        </button>
-                      }
-                    />
-                  </div>
-                )}
               </div>
             ))}
             {isAdmin && <AddSiteCard />}
