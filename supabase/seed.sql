@@ -65,11 +65,11 @@ INSERT INTO auth.identities (
 -- Sample sites (4 sites to demonstrate each status)
 -- ============================================================================
 
-INSERT INTO sites (id, name, url, position) VALUES
-  ('11111111-1111-1111-1111-111111111111', 'Healthy Site',          'https://example.com',       0),
-  ('22222222-2222-2222-2222-222222222222', 'Flaky Site',            'https://flaky.example.com', 1),
-  ('33333333-3333-3333-3333-333333333333', 'Broken Site',           'https://broken.example.com', 2),
-  ('44444444-4444-4444-4444-444444444444', 'Down Site (Incident)',  'https://down.example.com',  3);
+INSERT INTO sites (id, name, url) VALUES
+  ('11111111-1111-1111-1111-111111111111', 'Healthy Site',          'https://example.com'),
+  ('22222222-2222-2222-2222-222222222222', 'Flaky Site',            'https://flaky.example.com'),
+  ('33333333-3333-3333-3333-333333333333', 'Broken Site',           'https://broken.example.com'),
+  ('44444444-4444-4444-4444-444444444444', 'Down Site (Incident)',  'https://down.example.com');
 
 -- ============================================================================
 -- Synthetic checks (last hour) to demonstrate all three site statuses
