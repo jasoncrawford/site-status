@@ -19,6 +19,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers"
 import type { Site, Check } from "@/lib/supabase/types"
 import { formatTimeAgo } from "@/lib/format"
 import { reorderSites } from "@/app/sites/actions"
@@ -53,13 +54,16 @@ function SortableSiteCard({
     <div
       ref={setNodeRef}
       style={style}
-      className="group flex items-center gap-2"
+      className="group relative"
     >
       <button
         {...attributes}
         {...listeners}
-        className="flex items-center justify-center cursor-grab active:cursor-grabbing rounded opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity flex-shrink-0"
+        className="absolute flex items-center justify-center cursor-grab active:cursor-grabbing rounded opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
         style={{
+          left: "-24px",
+          top: "50%",
+          transform: "translateY(-50%)",
           width: "16px",
           height: "16px",
           color: "#B0B0B0",
@@ -247,6 +251,7 @@ export default function SiteList({
     <DndContext
       sensors={sensors}
       collisionDetection={closestCenter}
+      modifiers={[restrictToVerticalAxis]}
       onDragEnd={handleDragEnd}
     >
       <SortableContext
