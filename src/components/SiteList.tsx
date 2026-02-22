@@ -53,12 +53,38 @@ function SortableSiteCard({
     <div
       ref={setNodeRef}
       style={style}
+      className="group flex items-center gap-2"
     >
-      <SiteCard
-        site={site}
-        isAdmin={isAdmin}
-        dragHandleProps={{ ...attributes, ...listeners }}
-      />
+      <button
+        {...attributes}
+        {...listeners}
+        className="flex items-center justify-center cursor-grab active:cursor-grabbing rounded opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity flex-shrink-0"
+        style={{
+          width: "16px",
+          height: "16px",
+          color: "#B0B0B0",
+          background: "transparent",
+          border: "none",
+          padding: 0,
+          touchAction: "none",
+        }}
+        title="Drag to reorder"
+      >
+        <svg
+          width="10"
+          height="10"
+          viewBox="0 0 16 16"
+          fill="currentColor"
+        >
+          <circle cx="5.5" cy="3" r="1.5" />
+          <circle cx="10.5" cy="3" r="1.5" />
+          <circle cx="5.5" cy="8" r="1.5" />
+          <circle cx="10.5" cy="8" r="1.5" />
+          <circle cx="5.5" cy="13" r="1.5" />
+          <circle cx="10.5" cy="13" r="1.5" />
+        </svg>
+      </button>
+      <SiteCard site={site} isAdmin={isAdmin} />
     </div>
   )
 }
@@ -66,15 +92,13 @@ function SortableSiteCard({
 function SiteCard({
   site,
   isAdmin,
-  dragHandleProps,
 }: {
   site: SiteWithLastCheck
   isAdmin: boolean
-  dragHandleProps?: Record<string, unknown>
 }) {
   return (
     <div
-      className="group relative"
+      className="group relative flex-1 min-w-0"
       style={{
         backgroundColor: "#FFFFFF",
         border: "1px solid #E8E4DF",
@@ -88,36 +112,6 @@ function SiteCard({
         aria-label={site.name}
       />
       <div className="flex items-center gap-3 flex-wrap">
-        {isAdmin && dragHandleProps && (
-          <button
-            {...dragHandleProps}
-            className="relative z-10 flex items-center justify-center cursor-grab active:cursor-grabbing rounded opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity flex-shrink-0"
-            style={{
-              width: "20px",
-              height: "20px",
-              color: "#8A8A8A",
-              background: "transparent",
-              border: "none",
-              padding: 0,
-              touchAction: "none",
-            }}
-            title="Drag to reorder"
-          >
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 16 16"
-              fill="currentColor"
-            >
-              <circle cx="5.5" cy="3" r="1.5" />
-              <circle cx="10.5" cy="3" r="1.5" />
-              <circle cx="5.5" cy="8" r="1.5" />
-              <circle cx="10.5" cy="8" r="1.5" />
-              <circle cx="5.5" cy="13" r="1.5" />
-              <circle cx="10.5" cy="13" r="1.5" />
-            </svg>
-          </button>
-        )}
         <div className="flex items-center gap-2.5 min-w-0">
           <span
             className="w-2 h-2 rounded-full shrink-0"
@@ -262,7 +256,7 @@ export default function SiteList({
             <SortableSiteCard
               key={site.id}
               site={site}
-              isAdmin={true}
+              isAdmin
             />
           ))}
           <AddSiteCard />
