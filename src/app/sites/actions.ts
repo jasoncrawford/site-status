@@ -17,7 +17,16 @@ export async function addSite(formData: FormData) {
 
   if (!name || !url) return
 
-  await supabase.from("sites").insert({ name, url })
+  const { data: maxRow } = await supabase
+    .from("sites")
+    .select("position")
+    .order("position", { ascending: false })
+    .limit(1)
+    .single()
+
+  const position = (maxRow?.position ?? -1) + 1
+
+  await supabase.from("sites").insert({ name, url, position })
   revalidatePath("/")
 }
 
@@ -48,5 +57,23 @@ export async function deleteSite(siteId: string) {
   if (!user) redirect("/login")
 
   await supabase.from("sites").delete().eq("id", siteId)
+  revalidatePath("/")
+}
+
+export async function reorderSites(orderedIds: string[]) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) redirect("/login")
+
+  for (let i = 0; i < orderedIds.length; i++) {
+    await supabase
+      .from("sites")
+      .update({ position: i })
+      .eq("id", orderedIds[i])
+  }
+
   revalidatePath("/")
 }
