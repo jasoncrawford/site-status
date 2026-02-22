@@ -2,6 +2,7 @@ export type Site = {
   id: string
   name: string
   url: string
+  position: number
   created_at: string
 }
 
