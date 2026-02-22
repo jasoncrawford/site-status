@@ -1,9 +1,8 @@
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import type { Site, Check, Incident } from "@/lib/supabase/types"
-import { formatTimeAgo, formatDuration } from "@/lib/format"
-import AddSiteCard from "@/components/AddSiteCard"
-import SiteFormDialog from "@/components/SiteFormDialog"
+import { formatDuration } from "@/lib/format"
+import SiteList from "@/components/SiteList"
 import RealtimeStatusPage from "@/components/RealtimeStatusPage"
 
 export const revalidate = 0
@@ -17,7 +16,7 @@ async function getStatusData() {
   const { data: sites } = await supabase
     .from("sites")
     .select("*")
-    .order("name")
+    .order("position")
 
   const { data: openIncidents } = await supabase
     .from("incidents")
@@ -127,103 +126,7 @@ export default async function StatusPage() {
           Sites
         </h2>
 
-        {sites.length === 0 && !isAdmin ? (
-          <p className="text-sm" style={{ color: "#5C5C5C" }}>
-            No sites are being monitored yet.
-          </p>
-        ) : (
-          <div className="flex flex-col gap-3">
-            {sites.map((site) => (
-              <div
-                key={site.id}
-                className="group relative"
-                style={{
-                  backgroundColor: "#FFFFFF",
-                  border: "1px solid #E8E4DF",
-                  borderRadius: "4px",
-                  padding: "14px 18px",
-                }}
-              >
-                <Link
-                  href={`/sites/${site.id}`}
-                  className="absolute inset-0 z-0"
-                  aria-label={site.name}
-                />
-                <div className="flex items-center gap-3 flex-wrap">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <span
-                      className="w-2 h-2 rounded-full shrink-0"
-                      style={{
-                        backgroundColor:
-                          site.lastCheck?.status === "failure"
-                            ? "#C4453C"
-                            : "#2DA44E",
-                      }}
-                    />
-                    <span
-                      className="text-sm font-bold"
-                      style={{ color: "#1A1A1A" }}
-                    >
-                      {site.name}
-                    </span>
-                  </div>
-                  <span
-                    className="text-xs"
-                    style={{ color: "#5C5C5C" }}
-                  >
-                    {site.url}
-                  </span>
-                  {isAdmin && (
-                    <div className="relative z-10">
-                      <SiteFormDialog
-                        mode="edit"
-                        siteId={site.id}
-                        name={site.name}
-                        url={site.url}
-                        trigger={
-                          <button
-                            className="flex items-center justify-center rounded cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
-                            style={{
-                              width: "28px",
-                              height: "28px",
-                              color: "#5C5C5C",
-                              background: "transparent",
-                              border: "none",
-                            }}
-                            title="Edit site"
-                          >
-                            <svg
-                              width="14"
-                              height="14"
-                              viewBox="0 0 16 16"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="1.5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <path d="M11.5 1.5l3 3-9 9H2.5v-3z" />
-                              <path d="M10 3l3 3" />
-                            </svg>
-                          </button>
-                        }
-                      />
-                    </div>
-                  )}
-                  <span
-                    className="ml-auto text-[11px] shrink-0"
-                    style={{ color: "#8A8A8A", letterSpacing: "0.01em" }}
-                  >
-                    {site.lastCheck
-                      ? `Checked ${formatTimeAgo(site.lastCheck.checked_at)}`
-                      : "No checks yet"}
-                  </span>
-                </div>
-              </div>
-            ))}
-            {isAdmin && <AddSiteCard />}
-          </div>
-        )}
+        <SiteList sites={sites} isAdmin={isAdmin} />
       </section>
     </main>
   )

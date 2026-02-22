@@ -26,7 +26,7 @@ vi.mock("@/lib/supabase/server", () => ({
     }),
 }))
 
-import { addSite, editSite, deleteSite } from "@/app/sites/actions"
+import { addSite, editSite, deleteSite, reorderSites } from "@/app/sites/actions"
 
 describe("addSite action", () => {
   beforeEach(() => {
@@ -49,7 +49,17 @@ describe("addSite action", () => {
     })
 
     const mockInsert = vi.fn().mockReturnValue({ error: null })
-    mockFrom.mockReturnValue({ insert: mockInsert })
+    const mockSingle = vi.fn().mockResolvedValue({ data: { position: 2 } })
+    const mockLimit = vi.fn().mockReturnValue({ single: mockSingle })
+    const mockOrder = vi.fn().mockReturnValue({ limit: mockLimit })
+    const mockSelect = vi.fn().mockReturnValue({ order: mockOrder })
+    mockFrom.mockImplementation((table: string) => {
+      // First call: select max position; second call: insert
+      if (mockFrom.mock.calls.length <= 1) {
+        return { select: mockSelect }
+      }
+      return { insert: mockInsert }
+    })
 
     const formData = new FormData()
     formData.set("name", "Test Site")
@@ -60,6 +70,7 @@ describe("addSite action", () => {
     expect(mockInsert).toHaveBeenCalledWith({
       name: "Test Site",
       url: "https://example.com",
+      position: 3,
     })
   })
 
@@ -152,5 +163,38 @@ describe("deleteSite action", () => {
     await deleteSite("site-1")
     expect(mockFrom).toHaveBeenCalledWith("sites")
     expect(mockEq).toHaveBeenCalledWith("id", "site-1")
+  })
+})
+
+describe("reorderSites action", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  test("redirects unauthenticated users to login", async () => {
+    mockGetUser.mockResolvedValue({ data: { user: null } })
+
+    await expect(reorderSites(["a", "b"])).rejects.toThrow(
+      "NEXT_REDIRECT:/login"
+    )
+  })
+
+  test("updates positions for authenticated users", async () => {
+    mockGetUser.mockResolvedValue({
+      data: { user: { id: "user-1" } },
+    })
+
+    const mockEq = vi.fn().mockReturnValue({ error: null })
+    const mockUpdate = vi.fn().mockReturnValue({ eq: mockEq })
+    mockFrom.mockReturnValue({ update: mockUpdate })
+
+    await reorderSites(["site-b", "site-a", "site-c"])
+    expect(mockFrom).toHaveBeenCalledWith("sites")
+    expect(mockUpdate).toHaveBeenCalledWith({ position: 0 })
+    expect(mockUpdate).toHaveBeenCalledWith({ position: 1 })
+    expect(mockUpdate).toHaveBeenCalledWith({ position: 2 })
+    expect(mockEq).toHaveBeenCalledWith("id", "site-b")
+    expect(mockEq).toHaveBeenCalledWith("id", "site-a")
+    expect(mockEq).toHaveBeenCalledWith("id", "site-c")
   })
 })
