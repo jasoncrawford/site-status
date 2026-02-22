@@ -132,7 +132,7 @@ export default async function StatusPage() {
             No sites are being monitored yet.
           </p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="flex flex-col gap-3">
             {sites.map((site) => (
               <div
                 key={site.id}
@@ -141,50 +141,49 @@ export default async function StatusPage() {
                   backgroundColor: "#FFFFFF",
                   border: "1px solid #E8E4DF",
                   borderRadius: "4px",
-                  padding: "16px 18px",
+                  padding: "14px 18px",
                 }}
               >
                 <Link
                   href={`/sites/${site.id}`}
-                  className="block no-underline"
-                  style={{ color: "inherit" }}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <span
-                        className="w-2 h-2 rounded-full shrink-0"
-                        style={{
-                          backgroundColor:
-                            site.lastCheck?.status === "failure"
-                              ? "#C4453C"
-                              : "#5A8A5A",
-                        }}
-                      />
-                      <span
-                        className="text-sm font-bold truncate"
-                        style={{ color: "#1A1A1A" }}
-                      >
-                        {site.name}
-                      </span>
-                    </div>
+                  className="absolute inset-0 z-0"
+                  aria-label={site.name}
+                />
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span
+                      className="w-2 h-2 rounded-full shrink-0"
+                      style={{
+                        backgroundColor:
+                          site.lastCheck?.status === "failure"
+                            ? "#C4453C"
+                            : "#2DA44E",
+                      }}
+                    />
+                    <span
+                      className="text-sm font-bold"
+                      style={{ color: "#1A1A1A" }}
+                    >
+                      {site.name}
+                    </span>
                   </div>
-                  <div
-                    className="mt-1.5 text-xs truncate"
+                  <span
+                    className="text-xs"
                     style={{ color: "#5C5C5C" }}
                   >
                     {site.url}
-                  </div>
-                  <div
-                    className="mt-2 text-[11px]"
+                  </span>
+                  <span
+                    className="ml-auto text-[11px] shrink-0"
                     style={{ color: "#8A8A8A", letterSpacing: "0.01em" }}
                   >
                     {site.lastCheck
                       ? `Checked ${formatTimeAgo(site.lastCheck.checked_at)}`
                       : "No checks yet"}
-                  </div>
-                </Link>
+                  </span>
+                </div>
                 {isAdmin && (
-                  <div className="absolute top-3 right-3 z-10">
+                  <div className="absolute top-1/2 -translate-y-1/2 right-3 z-10">
                     <SiteFormDialog
                       mode="edit"
                       siteId={site.id}

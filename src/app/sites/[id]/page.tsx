@@ -83,9 +83,9 @@ export default async function SiteDetailPage({
           <div className="inline-flex items-center gap-2 text-sm font-semibold">
             <span
               className="w-2.5 h-2.5 rounded-full"
-              style={{ backgroundColor: isDown ? "#C4453C" : "#5A8A5A" }}
+              style={{ backgroundColor: isDown ? "#C4453C" : "#2DA44E" }}
             />
-            <span style={{ color: isDown ? "#C4453C" : "#5A8A5A" }}>
+            <span style={{ color: isDown ? "#C4453C" : "#2DA44E" }}>
               {isDown ? "Down" : "Up"}
             </span>
           </div>
@@ -254,12 +254,12 @@ export default async function SiteDetailPage({
                           <span
                             className="w-1.5 h-1.5 rounded-full"
                             style={{
-                              backgroundColor: isFailure ? "#C4453C" : "#5A8A5A",
+                              backgroundColor: isFailure ? "#C4453C" : "#2DA44E",
                             }}
                           />
                           <span
                             className="text-sm font-medium"
-                            style={{ color: isFailure ? "#C4453C" : "#5A8A5A" }}
+                            style={{ color: isFailure ? "#C4453C" : "#2DA44E" }}
                           >
                             {isFailure
                               ? check.error ?? "Failure"

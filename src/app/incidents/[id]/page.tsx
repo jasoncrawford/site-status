@@ -152,7 +152,7 @@ export default async function IncidentDetailPage({
               <button
                 type="submit"
                 className="inline-flex items-center gap-1.5 px-5 py-2 text-sm font-semibold text-white rounded cursor-pointer transition-colors"
-                style={{ backgroundColor: "#5A8A5A" }}
+                style={{ backgroundColor: "#2DA44E" }}
               >
                 <svg
                   viewBox="0 0 24 24"
@@ -206,14 +206,14 @@ export default async function IncidentDetailPage({
                     className="w-2.5 h-2.5 rounded-full shrink-0"
                     style={{
                       backgroundColor:
-                        check.status === "failure" ? "#C4453C" : "#5A8A5A",
+                        check.status === "failure" ? "#C4453C" : "#2DA44E",
                     }}
                   />
                   <span
                     className="text-sm font-medium min-w-[80px]"
                     style={{
                       color:
-                        check.status === "failure" ? "#C4453C" : "#5A8A5A",
+                        check.status === "failure" ? "#C4453C" : "#2DA44E",
                     }}
                   >
                     {check.status === "failure" ? "Failing" : "Passing"}
