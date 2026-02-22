@@ -84,7 +84,7 @@ function SortableSiteCard({
           <circle cx="10.5" cy="13" r="1.5" />
         </svg>
       </button>
-      <SiteCard site={site} isAdmin={isAdmin} />
+      <SiteCard site={site} isAdmin={isAdmin} isWrapped />
     </div>
   )
 }
@@ -92,13 +92,15 @@ function SortableSiteCard({
 function SiteCard({
   site,
   isAdmin,
+  isWrapped,
 }: {
   site: SiteWithLastCheck
   isAdmin: boolean
+  isWrapped?: boolean
 }) {
   return (
     <div
-      className="group relative flex-1 min-w-0"
+      className={`${isWrapped ? "" : "group "}relative flex-1 min-w-0`}
       style={{
         backgroundColor: "#FFFFFF",
         border: "1px solid #E8E4DF",
