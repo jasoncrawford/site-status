@@ -2,15 +2,9 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import type { Site, Check, Incident } from "@/lib/supabase/types"
-import { computeSiteStatus, type SiteStatus } from "@/lib/checker"
+import { isSoftFailure } from "@/lib/checker"
 import { formatTimeAgo } from "@/lib/format"
 import SiteFormDialog from "@/components/SiteFormDialog"
-
-const STATUS_CONFIG: Record<SiteStatus, { color: string; label: string }> = {
-  up: { color: "#2DA44E", label: "Up" },
-  failures: { color: "#C4453C", label: "Failures" },
-  transient_failures: { color: "#D4A017", label: "Transient Failures" },
-}
 
 export const revalidate = 0
 
@@ -38,17 +32,10 @@ async function getSiteData(id: string) {
     .order("checked_at", { ascending: false })
     .limit(50)
 
-  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000)
-  const recentChecks = (checks ?? []).filter(
-    (c) => new Date(c.checked_at) > oneHourAgo
-  )
-  const siteStatus = computeSiteStatus(recentChecks)
-
   return {
     site: site as Site,
     incidents: (incidents ?? []) as (Incident & { check: Check })[],
     checks: (checks ?? []) as Check[],
-    siteStatus,
   }
 }
 
@@ -61,8 +48,7 @@ export default async function SiteDetailPage({
   const data = await getSiteData(id)
   if (!data) notFound()
 
-  const { site, incidents, checks, siteStatus } = data
-  const statusConfig = STATUS_CONFIG[siteStatus]
+  const { site, incidents, checks } = data
   const supabase = await createClient()
   const {
     data: { user },
@@ -88,17 +74,8 @@ export default async function SiteDetailPage({
           >
             {site.name}
           </h1>
-          <div className="text-sm mb-3 break-all" style={{ color: "#5C5C5C" }}>
+          <div className="text-sm break-all" style={{ color: "#5C5C5C" }}>
             {site.url}
-          </div>
-          <div className="inline-flex items-center gap-2 text-sm font-semibold">
-            <span
-              className="w-2.5 h-2.5 rounded-full"
-              style={{ backgroundColor: statusConfig.color }}
-            />
-            <span style={{ color: statusConfig.color }}>
-              {statusConfig.label}
-            </span>
           </div>
         </div>
 
@@ -238,6 +215,9 @@ export default async function SiteDetailPage({
               ) : (
                 checks.map((check, i) => {
                   const isFailure = check.status === "failure"
+                  const dotColor = isFailure
+                    ? isSoftFailure(check.status_code, check.error) ? "#D4A017" : "#C4453C"
+                    : "#2DA44E"
                   return (
                     <tr
                       key={check.id}
@@ -264,13 +244,11 @@ export default async function SiteDetailPage({
                         <div className="flex items-center gap-2">
                           <span
                             className="w-1.5 h-1.5 rounded-full"
-                            style={{
-                              backgroundColor: isFailure ? "#C4453C" : "#2DA44E",
-                            }}
+                            style={{ backgroundColor: dotColor }}
                           />
                           <span
                             className="text-sm font-medium"
-                            style={{ color: isFailure ? "#C4453C" : "#2DA44E" }}
+                            style={{ color: dotColor }}
                           >
                             {isFailure
                               ? check.error ?? "Failure"

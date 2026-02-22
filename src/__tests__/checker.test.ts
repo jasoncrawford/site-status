@@ -1,5 +1,5 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest'
-import { checkSite, isSoftFailure, computeSiteStatus } from '@/lib/checker'
+import { checkSite, isSoftFailure } from '@/lib/checker'
 
 describe('checkSite', () => {
   beforeEach(() => {
@@ -98,56 +98,3 @@ describe('isSoftFailure', () => {
   })
 })
 
-describe('computeSiteStatus', () => {
-  test('returns "up" when all checks are successful', () => {
-    const checks = [
-      { status: 'success', status_code: 200, error: null },
-      { status: 'success', status_code: 200, error: null },
-    ]
-    expect(computeSiteStatus(checks)).toBe('up')
-  })
-
-  test('returns "up" when there are no checks', () => {
-    expect(computeSiteStatus([])).toBe('up')
-  })
-
-  test('returns "failures" when there is a hard failure', () => {
-    const checks = [
-      { status: 'success', status_code: 200, error: null },
-      { status: 'failure', status_code: 500, error: 'HTTP 500' },
-    ]
-    expect(computeSiteStatus(checks)).toBe('failures')
-  })
-
-  test('returns "transient_failures" when there are only soft failures', () => {
-    const checks = [
-      { status: 'success', status_code: 200, error: null },
-      { status: 'failure', status_code: 503, error: 'HTTP 503' },
-    ]
-    expect(computeSiteStatus(checks)).toBe('transient_failures')
-  })
-
-  test('returns "failures" when there are both hard and soft failures', () => {
-    const checks = [
-      { status: 'failure', status_code: 503, error: 'HTTP 503' },
-      { status: 'failure', status_code: 500, error: 'HTTP 500' },
-    ]
-    expect(computeSiteStatus(checks)).toBe('failures')
-  })
-
-  test('returns "transient_failures" for connection timeout', () => {
-    const checks = [
-      { status: 'success', status_code: 200, error: null },
-      { status: 'failure', status_code: null, error: 'Connection timeout' },
-    ]
-    expect(computeSiteStatus(checks)).toBe('transient_failures')
-  })
-
-  test('returns "failures" for DNS failure', () => {
-    const checks = [
-      { status: 'success', status_code: 200, error: null },
-      { status: 'failure', status_code: null, error: 'getaddrinfo ENOTFOUND example.com' },
-    ]
-    expect(computeSiteStatus(checks)).toBe('failures')
-  })
-})

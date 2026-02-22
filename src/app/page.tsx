@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import type { Site, Check, Incident } from "@/lib/supabase/types"
-import { computeSiteStatus, type SiteStatus } from "@/lib/checker"
+import { isSoftFailure } from "@/lib/checker"
 import { formatTimeAgo, formatDuration } from "@/lib/format"
 import AddSiteCard from "@/components/AddSiteCard"
 import SiteFormDialog from "@/components/SiteFormDialog"
@@ -9,13 +9,12 @@ import RealtimeStatusPage from "@/components/RealtimeStatusPage"
 
 export const revalidate = 0
 
-type SiteWithStatus = Site & { lastCheck: Check | null; siteStatus: SiteStatus }
+type SiteWithLastCheck = Site & { lastCheck: Check | null }
 type IncidentWithSite = Incident & { site: Site; check: Check }
 
-const STATUS_DOT_COLORS: Record<SiteStatus, string> = {
-  up: "#2DA44E",
-  failures: "#C4453C",
-  transient_failures: "#D4A017",
+function checkDotColor(check: Check | null): string {
+  if (!check || check.status !== "failure") return "#2DA44E"
+  return isSoftFailure(check.status_code, check.error) ? "#D4A017" : "#C4453C"
 }
 
 async function getStatusData() {
@@ -32,8 +31,7 @@ async function getStatusData() {
     .eq("status", "open")
     .order("opened_at", { ascending: false })
 
-  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
-  const sitesWithStatus: SiteWithStatus[] = []
+  const sitesWithChecks: SiteWithLastCheck[] = []
   for (const site of sites ?? []) {
     const { data: lastChecks } = await supabase
       .from("checks")
@@ -42,16 +40,9 @@ async function getStatusData() {
       .order("checked_at", { ascending: false })
       .limit(1)
 
-    const { data: recentChecks } = await supabase
-      .from("checks")
-      .select("status, status_code, error")
-      .eq("site_id", site.id)
-      .gte("checked_at", oneHourAgo)
-
-    sitesWithStatus.push({
+    sitesWithChecks.push({
       ...site,
       lastCheck: lastChecks?.[0] ?? null,
-      siteStatus: computeSiteStatus(recentChecks ?? []),
     })
   }
 
@@ -60,7 +51,7 @@ async function getStatusData() {
   } = await supabase.auth.getUser()
 
   return {
-    sites: sitesWithStatus,
+    sites: sitesWithChecks,
     incidents: (openIncidents ?? []) as IncidentWithSite[],
     isAdmin: !!user,
   }
@@ -139,7 +130,7 @@ export default async function StatusPage() {
           className="text-xl font-bold mb-4"
           style={{ color: "#1A1A1A" }}
         >
-          Sites
+          Latest checks
         </h2>
 
         {sites.length === 0 && !isAdmin ? (
@@ -169,7 +160,7 @@ export default async function StatusPage() {
                     <span
                       className="w-2 h-2 rounded-full shrink-0"
                       style={{
-                        backgroundColor: STATUS_DOT_COLORS[site.siteStatus],
+                        backgroundColor: checkDotColor(site.lastCheck),
                       }}
                     />
                     <span
