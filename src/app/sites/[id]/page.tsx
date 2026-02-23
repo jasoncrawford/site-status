@@ -2,7 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import type { Site, Check, Incident } from "@/lib/supabase/types"
-import { formatIncidentRange } from "@/lib/format"
+import { LocalIncidentRange } from "@/components/LocalTime"
 import SiteFormDialog from "@/components/SiteFormDialog"
 import CheckLogTable from "@/components/CheckLogTable"
 
@@ -155,7 +155,10 @@ export default async function SiteDetailPage({
                       </span>
                     </div>
                     <div className="text-[13px]" style={{ color: "#5C5C5C" }}>
-                      {formatIncidentRange(incident.opened_at, incident.resolved_at)}
+                      <LocalIncidentRange
+                        openedAt={incident.opened_at}
+                        resolvedAt={incident.resolved_at}
+                      />
                     </div>
                   </div>
                 </Link>

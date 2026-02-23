@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import type { Site, Check, Incident } from "@/lib/supabase/types"
-import { formatIncidentRange } from "@/lib/format"
+import { LocalIncidentRange } from "@/components/LocalTime"
 
 export const revalidate = 0
 
@@ -101,10 +101,10 @@ export default async function AllIncidentsPage() {
                     </div>
                   )}
                   <div className="text-[13px]" style={{ color: "#807B74" }}>
-                    {formatIncidentRange(
-                      incident.opened_at,
-                      incident.resolved_at
-                    )}
+                    <LocalIncidentRange
+                      openedAt={incident.opened_at}
+                      resolvedAt={incident.resolved_at}
+                    />
                   </div>
                 </div>
               </Link>
