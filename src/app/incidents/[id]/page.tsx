@@ -22,12 +22,18 @@ async function getIncidentData(id: string) {
 
   const typedIncident = incident as IncidentWithRelations
 
-  const { data: checks } = await supabase
+  let checksQuery = supabase
     .from("checks")
     .select("*")
     .eq("site_id", typedIncident.site_id)
-    .gte("checked_at", typedIncident.opened_at)
+    .gte("checked_at", typedIncident.check.checked_at)
     .order("checked_at", { ascending: false })
+
+  if (typedIncident.resolved_at) {
+    checksQuery = checksQuery.lte("checked_at", typedIncident.resolved_at)
+  }
+
+  const { data: checks } = await checksQuery
 
   return {
     incident: typedIncident,
@@ -178,7 +184,7 @@ export default async function IncidentDetailPage({
           className="text-[22px] font-bold mb-4"
           style={{ color: "#1A1A1A", letterSpacing: "-0.01em" }}
         >
-          Checks Since Incident Opened
+          Checks During Incident
         </h2>
         <CheckLogTable checks={checks} triggeringCheckId={incident.check_id} />
       </section>
