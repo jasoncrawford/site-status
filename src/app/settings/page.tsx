@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
-import type { Contact } from "@/lib/supabase/types"
+import type { Contact, Invitation } from "@/lib/supabase/types"
 import { addContact, deleteContact } from "./actions"
+import { sendInvitation, revokeInvitation } from "./invite-actions"
 import Link from "next/link"
 
 export const revalidate = 0
@@ -20,6 +21,14 @@ export default async function SettingsPage() {
     .order("created_at")
 
   const typedContacts = (contacts ?? []) as Contact[]
+
+  const { data: invitations } = await supabase
+    .from("invitations")
+    .select("*")
+    .is("accepted_at", null)
+    .order("created_at")
+
+  const typedInvitations = (invitations ?? []) as Invitation[]
 
   return (
     <main className="max-w-[720px] mx-auto" style={{ padding: "32px 24px 64px" }}>
@@ -100,6 +109,77 @@ export default async function SettingsPage() {
             style={{ backgroundColor: "#2C2C2C" }}
           >
             Add
+          </button>
+        </form>
+      </div>
+
+      <div
+        className="rounded mb-6"
+        style={{
+          backgroundColor: "#FFFFFF",
+          border: "1px solid #E8E4DF",
+          padding: "28px",
+        }}
+      >
+        <h2 className="text-xl font-bold mb-1.5" style={{ color: "#1A1A1A" }}>
+          Invitations
+        </h2>
+        <p className="text-sm mb-5" style={{ color: "#5C5C5C" }}>
+          Invite new administrators by email.
+        </p>
+
+        <ul className="list-none mb-5">
+          {typedInvitations.length === 0 ? (
+            <li className="py-2.5 text-sm" style={{ color: "#5C5C5C" }}>
+              No pending invitations.
+            </li>
+          ) : (
+            typedInvitations.map((invitation) => (
+              <li
+                key={invitation.id}
+                className="flex items-center justify-between py-2.5"
+                style={{ borderBottom: "1px solid #F0EDEA" }}
+              >
+                <span className="text-[15px]" style={{ color: "#1A1A1A" }}>
+                  {invitation.email}
+                </span>
+                <form action={revokeInvitation.bind(null, invitation.id)}>
+                  <button
+                    type="submit"
+                    className="text-[13px] px-3 py-1 rounded cursor-pointer transition-colors"
+                    style={{
+                      backgroundColor: "transparent",
+                      color: "#5C5C5C",
+                      border: "1px solid #E8E4DF",
+                    }}
+                  >
+                    Revoke
+                  </button>
+                </form>
+              </li>
+            ))
+          )}
+        </ul>
+
+        <form action={sendInvitation} className="flex gap-2">
+          <input
+            type="email"
+            name="email"
+            placeholder="email@example.com"
+            required
+            className="flex-1 text-sm px-3 py-2 rounded outline-none transition-colors"
+            style={{
+              border: "1px solid #E8E4DF",
+              backgroundColor: "#FFFFFF",
+              color: "#1A1A1A",
+            }}
+          />
+          <button
+            type="submit"
+            className="text-sm font-medium px-4 py-2 rounded cursor-pointer text-white"
+            style={{ backgroundColor: "#2C2C2C" }}
+          >
+            Send
           </button>
         </form>
       </div>

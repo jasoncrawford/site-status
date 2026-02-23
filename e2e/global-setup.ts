@@ -12,6 +12,7 @@ export default async function globalSetup() {
   await admin.from("incidents").delete().neq("id", "00000000-0000-0000-0000-000000000000");
   await admin.from("checks").delete().neq("id", "00000000-0000-0000-0000-000000000000");
   await admin.from("contacts").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+  await admin.from("invitations").delete().neq("id", "00000000-0000-0000-0000-000000000000");
   await admin.from("sites").delete().neq("id", "00000000-0000-0000-0000-000000000000");
 
   // Delete existing test user if present
