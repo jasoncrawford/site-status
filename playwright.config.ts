@@ -39,7 +39,7 @@ export default defineConfig({
         storageState: "e2e/.auth/user.json",
       },
       dependencies: ["public"],
-      testMatch: [/contacts\.spec\.ts/, /sites-crud\.spec\.ts/, /incidents\.spec\.ts/],
+      testMatch: [/contacts\.spec\.ts/, /invitations\.spec\.ts/, /sites-crud\.spec\.ts/, /incidents\.spec\.ts/],
     },
   ],
   webServer: {
