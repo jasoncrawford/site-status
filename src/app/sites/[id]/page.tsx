@@ -2,7 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import type { Site, Check, Incident } from "@/lib/supabase/types"
-import { formatTimeAgo } from "@/lib/format"
+import { formatIncidentRange } from "@/lib/format"
 import SiteFormDialog from "@/components/SiteFormDialog"
 import CheckLogTable from "@/components/CheckLogTable"
 
@@ -118,7 +118,7 @@ export default async function SiteDetailPage({
               No incidents recorded.
             </div>
           ) : (
-            incidents.map((incident, i) => {
+            incidents.slice(0, 3).map((incident, i) => {
               const isOpen = incident.status === "open"
               return (
                 <Link
@@ -155,9 +155,7 @@ export default async function SiteDetailPage({
                       </span>
                     </div>
                     <div className="text-[13px]" style={{ color: "#5C5C5C" }}>
-                      {isOpen
-                        ? `Opened ${formatTimeAgo(incident.opened_at)}`
-                        : `${new Date(incident.opened_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${new Date(incident.resolved_at!).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`}
+                      {formatIncidentRange(incident.opened_at, incident.resolved_at)}
                     </div>
                   </div>
                 </Link>
@@ -165,6 +163,17 @@ export default async function SiteDetailPage({
             })
           )}
         </div>
+        {incidents.length > 3 && (
+          <div style={{ marginTop: "12px" }}>
+            <Link
+              href={`/sites/${site.id}/incidents`}
+              className="text-sm no-underline"
+              style={{ color: "#C4453C" }}
+            >
+              View all incidents &rarr;
+            </Link>
+          </div>
+        )}
       </section>
 
       <section>
