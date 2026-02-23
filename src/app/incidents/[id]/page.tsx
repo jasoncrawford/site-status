@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import type { Incident, Site, Check } from "@/lib/supabase/types"
 import CheckLogTable from "@/components/CheckLogTable"
+import { LocalDateTime } from "@/components/LocalTime"
 import { resolveIncident } from "./actions"
 
 export const revalidate = 0
@@ -113,28 +114,12 @@ export default async function IncidentDetailPage({
         <div className="mt-3 flex flex-col gap-1.5">
           <div className="text-sm flex items-center gap-1.5" style={{ color: "#5C5C5C" }}>
             <span>
-              Opened{" "}
-              {new Date(incident.opened_at).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-              })},{" "}
-              {new Date(incident.opened_at).toLocaleTimeString("en-US", {
-                hour: "numeric",
-                minute: "2-digit",
-              })}
+              Opened <LocalDateTime dateString={incident.opened_at} />
             </span>
           </div>
           {incident.resolved_at && (
             <div className="text-sm" style={{ color: "#5C5C5C" }}>
-              Resolved{" "}
-              {new Date(incident.resolved_at).toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-              })},{" "}
-              {new Date(incident.resolved_at).toLocaleTimeString("en-US", {
-                hour: "numeric",
-                minute: "2-digit",
-              })}
+              Resolved <LocalDateTime dateString={incident.resolved_at} />
             </div>
           )}
           <div className="text-sm flex items-center gap-1.5" style={{ color: "#5C5C5C" }}>

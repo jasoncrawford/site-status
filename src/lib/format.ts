@@ -23,52 +23,91 @@ export function formatTimeAgo(dateString: string, now?: Date): string {
 }
 
 /**
- * Format a short time like "5:30pm" (no space, lowercase am/pm).
+ * Get the user's timezone, falling back to US Pacific.
  */
-function formatTime(date: Date): string {
-  const hours = date.getHours()
-  const minutes = date.getMinutes()
-  const ampm = hours >= 12 ? "pm" : "am"
-  const h = hours % 12 || 12
-  const m = minutes === 0 ? "" : `:${minutes.toString().padStart(2, "0")}`
-  return `${h}${m}${ampm}`
+export function getTimeZone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Los_Angeles"
+  } catch {
+    return "America/Los_Angeles"
+  }
 }
 
 /**
- * Format a short date like "Feb 19".
+ * Get a short timezone abbreviation like "PST" or "EST" for the given date and timezone.
  */
-function formatShortDate(date: Date): string {
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+function getTimeZoneAbbr(date: Date, timeZone: string): string {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    timeZoneName: "short",
+  }).formatToParts(date)
+  return parts.find((p) => p.type === "timeZoneName")?.value ?? ""
 }
 
 /**
- * Format an incident date range with smart date+time display:
- * - Open: "Feb 19 5:30pm – ongoing"
- * - Same-day resolved: "Feb 19 5:30pm–5:53pm"
- * - Cross-day resolved: "Feb 19 5:30pm – Feb 20 10:15am"
+ * Format a short time like "5:30pm" (no space, lowercase am/pm) in the given timezone.
+ */
+function formatTime(date: Date, timeZone: string): string {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).formatToParts(date)
+
+  const hour = parts.find((p) => p.type === "hour")?.value ?? "12"
+  const minute = parts.find((p) => p.type === "minute")?.value ?? "00"
+  const dayPeriod = (parts.find((p) => p.type === "dayPeriod")?.value ?? "AM").toLowerCase()
+
+  const m = minute === "00" ? "" : `:${minute}`
+  return `${hour}${m}${dayPeriod}`
+}
+
+/**
+ * Format a short date like "Feb 19" in the given timezone.
+ */
+function formatShortDate(date: Date, timeZone: string): string {
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone })
+}
+
+/**
+ * Format an incident date range with smart date+time display and timezone abbreviation:
+ * - Open: "Feb 19 5:30pm – ongoing PST"
+ * - Same-day resolved: "Feb 19 5:30pm–5:53pm PST"
+ * - Cross-day resolved: "Feb 19 5:30pm – Feb 20 10:15am PST"
  */
 export function formatIncidentRange(
   openedAt: string,
-  resolvedAt: string | null
+  resolvedAt: string | null,
+  timeZone: string
 ): string {
   const start = new Date(openedAt)
-  const startStr = `${formatShortDate(start)} ${formatTime(start)}`
+  const tz = getTimeZoneAbbr(start, timeZone)
+  const startStr = `${formatShortDate(start, timeZone)} ${formatTime(start, timeZone)}`
 
   if (!resolvedAt) {
-    return `${startStr} \u2013 ongoing`
+    return `${startStr} \u2013 ongoing ${tz}`
   }
 
   const end = new Date(resolvedAt)
-  const sameDay =
-    start.getFullYear() === end.getFullYear() &&
-    start.getMonth() === end.getMonth() &&
-    start.getDate() === end.getDate()
+  const startDateStr = formatShortDate(start, timeZone)
+  const endDateStr = formatShortDate(end, timeZone)
+  const sameDay = startDateStr === endDateStr
 
   if (sameDay) {
-    return `${startStr}\u2013${formatTime(end)}`
+    return `${startStr}\u2013${formatTime(end, timeZone)} ${tz}`
   }
 
-  return `${startStr} \u2013 ${formatShortDate(end)} ${formatTime(end)}`
+  return `${startStr} \u2013 ${endDateStr} ${formatTime(end, timeZone)} ${tz}`
+}
+
+/**
+ * Format a date string as "Feb 19, 5:30pm PST" in the given timezone.
+ */
+export function formatDateTime(dateString: string, timeZone: string): string {
+  const date = new Date(dateString)
+  const tz = getTimeZoneAbbr(date, timeZone)
+  return `${formatShortDate(date, timeZone)}, ${formatTime(date, timeZone)} ${tz}`
 }
 
 /**

@@ -1,5 +1,8 @@
+"use client"
+
 import type { Check } from "@/lib/supabase/types"
 import { isSoftFailure } from "@/lib/checker"
+import { LocalDateTime } from "@/components/LocalTime"
 
 function checkDotColor(check: Check): string {
   if (check.status !== "failure") return "#2DA44E"
@@ -70,14 +73,7 @@ export default function CheckLogTable({
                     className="px-5 py-2.5 text-sm whitespace-nowrap"
                     style={{ color: "#5C5C5C", fontVariantNumeric: "tabular-nums" }}
                   >
-                    {new Date(check.checked_at).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                    })}{" "}
-                    {new Date(check.checked_at).toLocaleTimeString("en-US", {
-                      hour: "numeric",
-                      minute: "2-digit",
-                    })}
+                    <LocalDateTime dateString={check.checked_at} />
                   </td>
                   <td className="px-5 py-2.5">
                     <div className="flex items-center gap-2">

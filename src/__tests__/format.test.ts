@@ -1,5 +1,5 @@
 import { describe, test, expect } from "vitest"
-import { formatTimeAgo, formatDuration } from "@/lib/format"
+import { formatTimeAgo, formatDuration, formatIncidentRange, formatDateTime } from "@/lib/format"
 
 const now = new Date("2025-06-15T12:00:00Z")
 
@@ -64,5 +64,82 @@ describe("formatDuration", () => {
 
   test("returns 'N days' for multiple days", () => {
     expect(formatDuration("2025-06-12T12:00:00Z", now)).toBe("3 days")
+  })
+})
+
+describe("formatIncidentRange", () => {
+  test("shows ongoing with timezone abbreviation", () => {
+    const result = formatIncidentRange("2025-06-15T17:30:00Z", null, "America/New_York")
+    expect(result).toBe("Jun 15 1:30pm \u2013 ongoing EDT")
+  })
+
+  test("shows same-day range with timezone", () => {
+    const result = formatIncidentRange(
+      "2025-06-15T17:30:00Z",
+      "2025-06-15T18:53:00Z",
+      "America/New_York"
+    )
+    expect(result).toBe("Jun 15 1:30pm\u20132:53pm EDT")
+  })
+
+  test("shows cross-day range with timezone", () => {
+    const result = formatIncidentRange(
+      "2025-06-15T23:30:00Z",
+      "2025-06-16T10:15:00Z",
+      "America/New_York"
+    )
+    expect(result).toBe("Jun 15 7:30pm \u2013 Jun 16 6:15am EDT")
+  })
+
+  test("formats correctly in UTC", () => {
+    const result = formatIncidentRange("2025-06-15T17:30:00Z", null, "UTC")
+    expect(result).toBe("Jun 15 5:30pm \u2013 ongoing UTC")
+  })
+
+  test("formats correctly in US Pacific", () => {
+    const result = formatIncidentRange(
+      "2025-06-15T17:30:00Z",
+      "2025-06-15T18:53:00Z",
+      "America/Los_Angeles"
+    )
+    expect(result).toBe("Jun 15 10:30am\u201311:53am PDT")
+  })
+
+  test("handles cross-day boundary due to timezone offset", () => {
+    // 2025-01-15 03:00 UTC = 2025-01-14 in Pacific (PST = UTC-8)
+    const result = formatIncidentRange(
+      "2025-01-15T03:00:00Z",
+      "2025-01-15T10:00:00Z",
+      "America/Los_Angeles"
+    )
+    // Start: Jan 14 7pm, End: Jan 15 2am — cross-day in Pacific
+    expect(result).toBe("Jan 14 7pm \u2013 Jan 15 2am PST")
+  })
+})
+
+describe("formatDateTime", () => {
+  test("formats date and time with timezone in Eastern", () => {
+    const result = formatDateTime("2025-06-15T17:30:00Z", "America/New_York")
+    expect(result).toBe("Jun 15, 1:30pm EDT")
+  })
+
+  test("formats date and time with timezone in UTC", () => {
+    const result = formatDateTime("2025-06-15T17:30:00Z", "UTC")
+    expect(result).toBe("Jun 15, 5:30pm UTC")
+  })
+
+  test("formats date and time with timezone in Pacific", () => {
+    const result = formatDateTime("2025-06-15T17:30:00Z", "America/Los_Angeles")
+    expect(result).toBe("Jun 15, 10:30am PDT")
+  })
+
+  test("omits minutes when on the hour", () => {
+    const result = formatDateTime("2025-06-15T17:00:00Z", "UTC")
+    expect(result).toBe("Jun 15, 5pm UTC")
+  })
+
+  test("shows winter timezone abbreviation (PST vs PDT)", () => {
+    const result = formatDateTime("2025-01-15T20:00:00Z", "America/Los_Angeles")
+    expect(result).toBe("Jan 15, 12pm PST")
   })
 })
