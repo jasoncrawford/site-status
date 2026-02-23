@@ -77,5 +77,6 @@ test("resolved incident no longer appears in Open Incidents", async ({ page }) =
   await expect(page.getByText("Resolved", { exact: true })).toBeVisible();
 
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Open Incidents" })).not.toBeVisible();
+  await expect(page.getByRole("heading", { name: "Open Incidents" })).toBeVisible();
+  await expect(page.getByText("No open incidents")).toBeVisible();
 });
