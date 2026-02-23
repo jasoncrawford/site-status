@@ -22,12 +22,10 @@ test("shows empty state", async ({ page }) => {
 test("sends an invitation", async ({ page }) => {
   await page.goto("/settings");
 
-  // The invitations section has its own email input — locate it by the section
-  const invitationsSection = page.locator("text=Invite new administrators by email.").locator("..");
-  await invitationsSection.getByPlaceholder("email@example.com").fill("invite@example.com");
-  await invitationsSection.getByRole("button", { name: "Send" }).click();
+  await page.getByPlaceholder("invite@example.com").fill("newuser@example.com");
+  await page.getByRole("button", { name: "Send" }).click();
 
-  await expect(page.getByText("invite@example.com")).toBeVisible();
+  await expect(page.getByText("newuser@example.com")).toBeVisible();
 });
 
 test("revokes an invitation", async ({ page, adminClient, testData }) => {

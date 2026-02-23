@@ -165,7 +165,7 @@ export default async function SettingsPage() {
           <input
             type="email"
             name="email"
-            placeholder="email@example.com"
+            placeholder="invite@example.com"
             required
             className="flex-1 text-sm px-3 py-2 rounded outline-none transition-colors"
             style={{
