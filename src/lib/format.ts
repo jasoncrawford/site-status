@@ -23,6 +23,55 @@ export function formatTimeAgo(dateString: string, now?: Date): string {
 }
 
 /**
+ * Format a short time like "5:30pm" (no space, lowercase am/pm).
+ */
+function formatTime(date: Date): string {
+  const hours = date.getHours()
+  const minutes = date.getMinutes()
+  const ampm = hours >= 12 ? "pm" : "am"
+  const h = hours % 12 || 12
+  const m = minutes === 0 ? "" : `:${minutes.toString().padStart(2, "0")}`
+  return `${h}${m}${ampm}`
+}
+
+/**
+ * Format a short date like "Feb 19".
+ */
+function formatShortDate(date: Date): string {
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+}
+
+/**
+ * Format an incident date range with smart date+time display:
+ * - Open: "Feb 19 5:30pm – ongoing"
+ * - Same-day resolved: "Feb 19 5:30pm–5:53pm"
+ * - Cross-day resolved: "Feb 19 5:30pm – Feb 20 10:15am"
+ */
+export function formatIncidentRange(
+  openedAt: string,
+  resolvedAt: string | null
+): string {
+  const start = new Date(openedAt)
+  const startStr = `${formatShortDate(start)} ${formatTime(start)}`
+
+  if (!resolvedAt) {
+    return `${startStr} \u2013 ongoing`
+  }
+
+  const end = new Date(resolvedAt)
+  const sameDay =
+    start.getFullYear() === end.getFullYear() &&
+    start.getMonth() === end.getMonth() &&
+    start.getDate() === end.getDate()
+
+  if (sameDay) {
+    return `${startStr}\u2013${formatTime(end)}`
+  }
+
+  return `${startStr} \u2013 ${formatShortDate(end)} ${formatTime(end)}`
+}
+
+/**
  * Format a duration from a start time to now, like "23 minutes" or "2 hours".
  */
 export function formatDuration(startDateString: string, now?: Date): string {

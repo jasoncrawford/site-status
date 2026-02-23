@@ -59,14 +59,14 @@ export default async function StatusPage() {
       style={{ padding: "36px 24px 80px" }}
     >
       <RealtimeStatusPage />
-      {incidents.length > 0 && (
-        <section>
-          <h2
-            className="text-xl font-bold mb-4"
-            style={{ color: "#1A1A1A" }}
-          >
-            Open Incidents
-          </h2>
+      <section>
+        <h2
+          className="text-xl font-bold mb-4"
+          style={{ color: "#1A1A1A" }}
+        >
+          Open Incidents
+        </h2>
+        {incidents.length > 0 ? (
           <div className="flex flex-col gap-3">
             {incidents.map((incident) => (
               <Link
@@ -115,10 +115,40 @@ export default async function StatusPage() {
               </Link>
             ))}
           </div>
-        </section>
-      )}
+        ) : (
+          <div
+            className="flex items-center gap-3 rounded"
+            style={{
+              backgroundColor: "#FFFFFF",
+              border: "1px solid #E8E4DF",
+              padding: "16px 20px",
+            }}
+          >
+            <span
+              className="flex items-center justify-center w-6 h-6 rounded-full"
+              style={{ backgroundColor: "#E6F4EA" }}
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M2.5 7.5L5.5 10.5L11.5 4" stroke="#2E7D32" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
+            <span className="text-[15px]" style={{ color: "#5C5C5C" }}>
+              No open incidents
+            </span>
+          </div>
+        )}
+        <div style={{ marginTop: "12px" }}>
+          <Link
+            href="/incidents"
+            className="text-sm no-underline"
+            style={{ color: "#C4453C" }}
+          >
+            View all incidents &rarr;
+          </Link>
+        </div>
+      </section>
 
-      <section style={{ marginTop: incidents.length > 0 ? "44px" : "0" }}>
+      <section style={{ marginTop: "44px" }}>
         <h2
           className="text-xl font-bold mb-4"
           style={{ color: "#1A1A1A" }}
