@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { addContact } from "@/app/settings/actions"
+import { useErrorDialog } from "@/components/ErrorDialog"
 
 const inputStyle = {
   border: "1px solid #E8E4DF",
@@ -11,11 +12,16 @@ const inputStyle = {
 
 export default function AddContactForm() {
   const [type, setType] = useState<"email" | "slack">("email")
+  const { showError } = useErrorDialog()
 
   return (
     <form action={async (formData: FormData) => {
-      await addContact(formData)
-      setType("email")
+      const result = await addContact(formData)
+      if (result?.error) {
+        showError(result.error)
+      } else {
+        setType("email")
+      }
     }} className="flex gap-2">
       <input type="hidden" name="contact_type" value={type} />
       <select
