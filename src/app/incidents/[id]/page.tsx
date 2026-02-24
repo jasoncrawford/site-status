@@ -122,6 +122,17 @@ export default async function IncidentDetailPage({
               Resolved <LocalDateTime dateString={incident.resolved_at} />
             </div>
           )}
+          <div className="text-sm" style={{ color: "#5C5C5C" }}>
+            <a
+              href={incident.site?.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="no-underline hover:underline"
+              style={{ color: "#5C5C5C" }}
+            >
+              {incident.site?.url}
+            </a>
+          </div>
           <div className="text-sm flex items-center gap-1.5" style={{ color: "#5C5C5C" }}>
             <span>Triggered by:</span>
             <span

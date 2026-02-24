@@ -138,12 +138,16 @@ function SiteCard({
             {site.name}
           </span>
         </div>
-        <span
-          className="text-xs"
+        <a
+          href={site.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs relative z-10 no-underline hover:underline"
           style={{ color: "#5C5C5C" }}
+          onClick={e => e.stopPropagation()}
         >
           {site.url}
-        </span>
+        </a>
         {isAdmin && (
           <div className="relative z-10">
             <SiteFormDialog
