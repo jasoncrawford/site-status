@@ -45,3 +45,22 @@ export async function deleteContact(contactId: string) {
   if (error) return { error: `Failed to remove contact: ${error.message}` }
   revalidatePath("/settings")
 }
+
+const VALID_CANARY_CODES = [200, 301, 302, 400, 401, 403, 404, 408, 500, 502, 503, 504]
+
+export async function updateCanaryStatusCode(code: number) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) redirect("/login")
+
+  if (!VALID_CANARY_CODES.includes(code)) return
+
+  await supabase
+    .from("settings")
+    .upsert({ key: "canary_status_code", value: String(code), updated_at: new Date().toISOString() })
+
+  revalidatePath("/settings")
+}
