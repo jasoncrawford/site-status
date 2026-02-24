@@ -2,6 +2,7 @@
 
 import { useId, useRef, useState } from "react"
 import { addSite, editSite, deleteSite } from "@/app/sites/actions"
+import { useErrorDialog } from "@/components/ErrorDialog"
 
 export default function SiteFormDialog({
   mode,
@@ -19,6 +20,7 @@ export default function SiteFormDialog({
   const id = useId()
   const dialogRef = useRef<HTMLDialogElement>(null)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const { showError } = useErrorDialog()
 
   function open() {
     setConfirmingDelete(false)
@@ -62,12 +64,14 @@ export default function SiteFormDialog({
           </h3>
           <form
             action={async (formData) => {
-              if (mode === "add") {
-                await addSite(formData)
+              const result = mode === "add"
+                ? await addSite(formData)
+                : await editSite(siteId!, formData)
+              if (result?.error) {
+                showError(result.error)
               } else {
-                await editSite(siteId!, formData)
+                close()
               }
-              close()
             }}
             className="flex flex-col gap-3"
           >
@@ -163,8 +167,12 @@ export default function SiteFormDialog({
                   <button
                     type="button"
                     onClick={async () => {
-                      await deleteSite(siteId!)
-                      close()
+                      const result = await deleteSite(siteId!)
+                      if (result?.error) {
+                        showError(result.error)
+                      } else {
+                        close()
+                      }
                     }}
                     className="text-sm font-medium px-3 py-1 rounded cursor-pointer text-white"
                     style={{ backgroundColor: "#C4453C" }}
