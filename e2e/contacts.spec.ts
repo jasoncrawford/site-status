@@ -27,7 +27,7 @@ test("adds an email contact and displays it in the list", async ({ page }) => {
 
 test("adds a Slack contact and displays it in the list", async ({ page }) => {
   await page.goto("/settings");
-  await page.getByRole("combobox").selectOption("slack");
+  await page.locator("form", { hasText: "Add" }).getByRole("combobox").selectOption("slack");
   await page.getByPlaceholder("#channel name").fill("#alerts");
   await page.getByPlaceholder("https://hooks.slack.com/services/...").fill("https://hooks.slack.com/services/T00/B00/test");
   await page.getByRole("button", { name: "Add" }).click();
