@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import type { Contact, Invitation } from "@/lib/supabase/types"
-import { addContact, deleteContact } from "./actions"
+import { deleteContact } from "./actions"
+import AddContactForm from "@/components/AddContactForm"
 import { sendInvitation, revokeInvitation } from "./invite-actions"
 import Link from "next/link"
 
@@ -54,7 +55,7 @@ export default async function SettingsPage() {
           Contacts
         </h2>
         <p className="text-sm mb-5" style={{ color: "#5C5C5C" }}>
-          All contacts are notified by email when an incident is opened.
+          All contacts are notified when an incident is opened.
         </p>
 
         <ul className="list-none mb-5">
@@ -69,8 +70,17 @@ export default async function SettingsPage() {
                 className="flex items-center justify-between py-2.5"
                 style={{ borderBottom: "1px solid #F0EDEA" }}
               >
-                <span className="text-[15px]" style={{ color: "#1A1A1A" }}>
-                  {contact.email}
+                <span className="text-[15px] flex items-center gap-2" style={{ color: "#1A1A1A" }}>
+                  <span
+                    className="text-[11px] font-medium uppercase px-1.5 py-0.5 rounded"
+                    style={{
+                      backgroundColor: contact.type === "slack" ? "#E8F0E8" : "#E8EEF4",
+                      color: contact.type === "slack" ? "#2D6A2D" : "#2D4A6A",
+                    }}
+                  >
+                    {contact.type}
+                  </span>
+                  {contact.type === "slack" ? "Slack webhook" : contact.email}
                 </span>
                 <form action={deleteContact.bind(null, contact.id)}>
                   <button
@@ -90,27 +100,7 @@ export default async function SettingsPage() {
           )}
         </ul>
 
-        <form action={addContact} className="flex gap-2">
-          <input
-            type="email"
-            name="email"
-            placeholder="email@example.com"
-            required
-            className="flex-1 text-sm px-3 py-2 rounded outline-none transition-colors"
-            style={{
-              border: "1px solid #E8E4DF",
-              backgroundColor: "#FFFFFF",
-              color: "#1A1A1A",
-            }}
-          />
-          <button
-            type="submit"
-            className="text-sm font-medium px-4 py-2 rounded cursor-pointer text-white"
-            style={{ backgroundColor: "#2C2C2C" }}
-          >
-            Add
-          </button>
-        </form>
+        <AddContactForm />
       </div>
 
       <div

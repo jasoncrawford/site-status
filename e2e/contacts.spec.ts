@@ -14,7 +14,7 @@ test("shows empty state", async ({ page }) => {
   await expect(page.getByText("No contacts added yet.")).toBeVisible();
 });
 
-test("adds a contact", async ({ page }) => {
+test("adds an email contact", async ({ page }) => {
   await page.goto("/settings");
   await page.getByPlaceholder("email@example.com").fill("contact@example.com");
   await page.getByRole("button", { name: "Add" }).click();
@@ -22,9 +22,18 @@ test("adds a contact", async ({ page }) => {
   await expect(page.getByText("contact@example.com")).toBeVisible();
 });
 
+test("adds a Slack contact", async ({ page }) => {
+  await page.goto("/settings");
+  await page.getByRole("combobox").selectOption("slack");
+  await page.getByPlaceholder("https://hooks.slack.com/services/...").fill("https://hooks.slack.com/services/T00/B00/test");
+  await page.getByRole("button", { name: "Add" }).click();
+
+  await expect(page.getByText("Slack webhook")).toBeVisible();
+});
+
 test("removes a contact", async ({ page, adminClient }) => {
   // Seed a contact
-  await adminClient.from("contacts").insert({ email: "remove-me@example.com" });
+  await adminClient.from("contacts").insert({ type: "email", email: "remove-me@example.com" });
 
   await page.goto("/settings");
   await expect(page.getByText("remove-me@example.com")).toBeVisible();

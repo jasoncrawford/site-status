@@ -6,7 +6,7 @@ function getResend() {
   return _resend
 }
 
-type IncidentAlertParams = {
+type IncidentEmailParams = {
   siteName: string
   siteUrl: string
   error: string | null
@@ -14,13 +14,13 @@ type IncidentAlertParams = {
   contactEmails: string[]
 }
 
-export async function sendIncidentAlert({
+export async function sendIncidentEmail({
   siteName,
   siteUrl,
   error,
   incidentId,
   contactEmails,
-}: IncidentAlertParams) {
+}: IncidentEmailParams) {
   if (contactEmails.length === 0) return
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://status.rootsofprogress.org"
@@ -48,11 +48,12 @@ export async function sendIncidentAlert({
   }
 }
 
-type SlackAlertParams = {
+type IncidentSlackParams = {
   siteName: string
   siteUrl: string
   error: string | null
   incidentId: string
+  webhookUrls: string[]
 }
 
 export async function sendIncidentSlack({
@@ -60,17 +61,15 @@ export async function sendIncidentSlack({
   siteUrl,
   error,
   incidentId,
-}: SlackAlertParams) {
-  const webhookUrl = process.env.SLACK_WEBHOOK_URL
-  if (!webhookUrl) return
+  webhookUrls,
+}: IncidentSlackParams) {
+  if (webhookUrls.length === 0) return
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://status.rootsofprogress.org"
   const incidentLink = `${appUrl}/incidents/${incidentId}`
-  const mention = process.env.SLACK_MENTION || ""
-  const mentionPrefix = mention ? `${mention} ` : ""
 
   const text = [
-    `${mentionPrefix}*${siteName}* is down`,
+    `<!channel> *${siteName}* is down`,
     `URL: ${siteUrl}`,
     error ? `Error: ${error}` : null,
     `<${incidentLink}|View incident>`,
@@ -78,16 +77,20 @@ export async function sendIncidentSlack({
     .filter(Boolean)
     .join("\n")
 
-  try {
-    const response = await fetch(webhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
-    })
-    if (!response.ok) {
-      console.error("Slack webhook returned", response.status)
+  const body = JSON.stringify({ text })
+
+  for (const webhookUrl of webhookUrls) {
+    try {
+      const response = await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+      })
+      if (!response.ok) {
+        console.error("Slack webhook returned", response.status)
+      }
+    } catch (err) {
+      console.error("Failed to send Slack alert:", err)
     }
-  } catch (err) {
-    console.error("Failed to send Slack alert:", err)
   }
 }
