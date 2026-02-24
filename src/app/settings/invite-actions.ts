@@ -49,6 +49,7 @@ export async function sendInvitation(formData: FormData) {
       `.trim(),
     })
   } catch {
+    revalidatePath("/settings")
     return { error: "Invitation created but failed to send email. The invite link is still valid." }
   }
 
