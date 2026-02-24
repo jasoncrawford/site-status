@@ -14,7 +14,7 @@ test("shows empty state", async ({ page }) => {
   await expect(page.getByText("No contacts added yet.")).toBeVisible();
 });
 
-test("adds an email contact", async ({ page }) => {
+test("adds a contact", async ({ page }) => {
   await page.goto("/settings");
   await page.getByPlaceholder("email@example.com").fill("contact@example.com");
   await page.getByRole("button", { name: "Add" }).click();
@@ -22,19 +22,9 @@ test("adds an email contact", async ({ page }) => {
   await expect(page.getByText("contact@example.com")).toBeVisible();
 });
 
-test("adds an SMS contact", async ({ page }) => {
-  await page.goto("/settings");
-  await page.getByRole("combobox").selectOption("sms");
-  await page.getByPlaceholder("+15551234567").fill("+15559876543");
-  await page.getByRole("button", { name: "Add" }).click();
-
-  await expect(page.getByText("+15559876543")).toBeVisible();
-  await expect(page.getByText("sms")).toBeVisible();
-});
-
 test("removes a contact", async ({ page, adminClient }) => {
   // Seed a contact
-  await adminClient.from("contacts").insert({ type: "email", email: "remove-me@example.com" });
+  await adminClient.from("contacts").insert({ email: "remove-me@example.com" });
 
   await page.goto("/settings");
   await expect(page.getByText("remove-me@example.com")).toBeVisible();

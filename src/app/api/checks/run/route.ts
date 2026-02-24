@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { checkSite, isSoftFailure } from '@/lib/checker'
-import { sendIncidentEmail, sendIncidentSms } from '@/lib/notifications'
+import { sendIncidentAlert, sendIncidentSlack } from '@/lib/notifications'
 
 export const maxDuration = 60
 
@@ -95,27 +95,21 @@ async function handleCheckRun(request: NextRequest) {
           if (incident) {
             const { data: contacts } = await supabase
               .from('contacts')
-              .select('type, email, phone')
-
-            const emailContacts = (contacts ?? [])
-              .filter((c: { type: string }) => c.type === 'email')
-              .map((c: { email: string }) => c.email)
-            const smsContacts = (contacts ?? [])
-              .filter((c: { type: string }) => c.type === 'sms')
-              .map((c: { phone: string }) => c.phone)
+              .select('email')
 
             await Promise.all([
-              sendIncidentEmail({
+              sendIncidentAlert({
                 siteName: site.name,
                 siteUrl: site.url,
                 error,
                 incidentId: incident.id,
-                contactEmails: emailContacts,
+                contactEmails: (contacts ?? []).map((c: { email: string }) => c.email),
               }),
-              sendIncidentSms({
+              sendIncidentSlack({
                 siteName: site.name,
+                siteUrl: site.url,
+                error,
                 incidentId: incident.id,
-                contactPhones: smsContacts,
               }),
             ])
           }

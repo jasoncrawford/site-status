@@ -20,8 +20,7 @@
     "next": "^15.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "resend": "^6.9.2",
-    "twilio": "^5.12.2"
+    "resend": "^6.9.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

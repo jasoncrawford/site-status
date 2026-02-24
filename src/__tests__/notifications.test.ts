@@ -8,24 +8,20 @@ vi.mock("resend", () => ({
   },
 }))
 
-// Mock Twilio
-const mockCreate = vi.fn()
-vi.mock("twilio", () => ({
-  default: () => ({
-    messages: { create: mockCreate },
-  }),
-}))
+// Mock fetch for Slack
+const mockFetch = vi.fn()
+vi.stubGlobal("fetch", mockFetch)
 
-import { sendIncidentEmail, sendIncidentSms } from "@/lib/notifications"
+import { sendIncidentAlert, sendIncidentSlack } from "@/lib/notifications"
 
-describe("sendIncidentEmail", () => {
+describe("sendIncidentAlert", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockSend.mockResolvedValue({ id: "email-1" })
   })
 
   test("sends email to all contacts with correct content", async () => {
-    await sendIncidentEmail({
+    await sendIncidentAlert({
       siteName: "Main Website",
       siteUrl: "https://example.com",
       error: "HTTP 503",
@@ -45,7 +41,7 @@ describe("sendIncidentEmail", () => {
   })
 
   test("does nothing when contactEmails is empty", async () => {
-    await sendIncidentEmail({
+    await sendIncidentAlert({
       siteName: "Main Website",
       siteUrl: "https://example.com",
       error: "HTTP 503",
@@ -60,7 +56,7 @@ describe("sendIncidentEmail", () => {
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {})
     mockSend.mockRejectedValue(new Error("API rate limit"))
 
-    await sendIncidentEmail({
+    await sendIncidentAlert({
       siteName: "Main Website",
       siteUrl: "https://example.com",
       error: "HTTP 503",
@@ -76,7 +72,7 @@ describe("sendIncidentEmail", () => {
   })
 
   test("works without error field", async () => {
-    await sendIncidentEmail({
+    await sendIncidentAlert({
       siteName: "Main Website",
       siteUrl: "https://example.com",
       error: null,
@@ -89,69 +85,107 @@ describe("sendIncidentEmail", () => {
   })
 })
 
-describe("sendIncidentSms", () => {
+describe("sendIncidentSlack", () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockCreate.mockResolvedValue({ sid: "SM123" })
-    process.env.TWILIO_FROM_NUMBER = "+10001112222"
+    process.env.SLACK_WEBHOOK_URL = "https://hooks.slack.com/services/T00/B00/xxx"
+    delete process.env.SLACK_MENTION
   })
 
-  test("sends SMS to all contacts with correct content", async () => {
-    await sendIncidentSms({
+  test("posts to Slack webhook with correct content", async () => {
+    mockFetch.mockResolvedValue({ ok: true })
+
+    await sendIncidentSlack({
       siteName: "Main Website",
+      siteUrl: "https://example.com",
+      error: "HTTP 503",
       incidentId: "inc-1",
-      contactPhones: ["+15551234567", "+15559876543"],
     })
 
-    expect(mockCreate).toHaveBeenCalledTimes(2)
-    const call1 = mockCreate.mock.calls[0][0]
-    expect(call1.to).toBe("+15551234567")
-    expect(call1.from).toBe("+10001112222")
-    expect(call1.body).toContain("[Down]")
-    expect(call1.body).toContain("Main Website")
-    expect(call1.body).toContain("/incidents/inc-1")
+    expect(mockFetch).toHaveBeenCalledTimes(1)
+    const [url, options] = mockFetch.mock.calls[0]
+    expect(url).toBe("https://hooks.slack.com/services/T00/B00/xxx")
+    expect(options.method).toBe("POST")
+
+    const body = JSON.parse(options.body)
+    expect(body.text).toContain("*Main Website* is down")
+    expect(body.text).toContain("https://example.com")
+    expect(body.text).toContain("HTTP 503")
+    expect(body.text).toContain("/incidents/inc-1")
   })
 
-  test("does nothing when contactPhones is empty", async () => {
-    await sendIncidentSms({
+  test("includes SLACK_MENTION when configured", async () => {
+    mockFetch.mockResolvedValue({ ok: true })
+    process.env.SLACK_MENTION = "<@U1234ABCD>"
+
+    await sendIncidentSlack({
       siteName: "Main Website",
+      siteUrl: "https://example.com",
+      error: null,
       incidentId: "inc-1",
-      contactPhones: [],
     })
 
-    expect(mockCreate).not.toHaveBeenCalled()
+    const body = JSON.parse(mockFetch.mock.calls[0][1].body)
+    expect(body.text).toContain("<@U1234ABCD>")
   })
 
-  test("handles SMS send failure gracefully", async () => {
+  test("does nothing when SLACK_WEBHOOK_URL is not set", async () => {
+    delete process.env.SLACK_WEBHOOK_URL
+
+    await sendIncidentSlack({
+      siteName: "Main Website",
+      siteUrl: "https://example.com",
+      error: null,
+      incidentId: "inc-1",
+    })
+
+    expect(mockFetch).not.toHaveBeenCalled()
+  })
+
+  test("handles fetch failure gracefully", async () => {
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {})
-    mockCreate.mockRejectedValue(new Error("Twilio error"))
+    mockFetch.mockRejectedValue(new Error("Network error"))
 
-    await sendIncidentSms({
+    await sendIncidentSlack({
       siteName: "Main Website",
+      siteUrl: "https://example.com",
+      error: null,
       incidentId: "inc-1",
-      contactPhones: ["+15551234567"],
     })
 
     expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringContaining("Failed to send incident SMS"),
+      "Failed to send Slack alert:",
       expect.any(Error)
     )
     consoleSpy.mockRestore()
   })
 
-  test("continues sending to remaining contacts if one fails", async () => {
+  test("logs error when webhook returns non-ok status", async () => {
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {})
-    mockCreate
-      .mockRejectedValueOnce(new Error("Twilio error"))
-      .mockResolvedValueOnce({ sid: "SM456" })
+    mockFetch.mockResolvedValue({ ok: false, status: 403 })
 
-    await sendIncidentSms({
+    await sendIncidentSlack({
       siteName: "Main Website",
+      siteUrl: "https://example.com",
+      error: null,
       incidentId: "inc-1",
-      contactPhones: ["+15551111111", "+15552222222"],
     })
 
-    expect(mockCreate).toHaveBeenCalledTimes(2)
+    expect(consoleSpy).toHaveBeenCalledWith("Slack webhook returned", 403)
     consoleSpy.mockRestore()
+  })
+
+  test("omits error line when error is null", async () => {
+    mockFetch.mockResolvedValue({ ok: true })
+
+    await sendIncidentSlack({
+      siteName: "Main Website",
+      siteUrl: "https://example.com",
+      error: null,
+      incidentId: "inc-1",
+    })
+
+    const body = JSON.parse(mockFetch.mock.calls[0][1].body)
+    expect(body.text).not.toContain("Error:")
   })
 })

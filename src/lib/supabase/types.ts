@@ -26,9 +26,7 @@ export type Incident = {
 
 export type Contact = {
   id: string
-  type: 'email' | 'sms'
-  email: string | null
-  phone: string | null
+  email: string
   created_at: string
 }
 

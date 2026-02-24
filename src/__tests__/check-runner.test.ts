@@ -11,11 +11,11 @@ vi.mock('@/lib/checker', async (importOriginal) => {
 })
 
 // Mock the notifications module
-const mockSendIncidentEmail = vi.fn()
-const mockSendIncidentSms = vi.fn()
+const mockSendIncidentAlert = vi.fn()
+const mockSendIncidentSlack = vi.fn()
 vi.mock('@/lib/notifications', () => ({
-  sendIncidentEmail: (...args: unknown[]) => mockSendIncidentEmail(...args),
-  sendIncidentSms: (...args: unknown[]) => mockSendIncidentSms(...args),
+  sendIncidentAlert: (...args: unknown[]) => mockSendIncidentAlert(...args),
+  sendIncidentSlack: (...args: unknown[]) => mockSendIncidentSlack(...args),
 }))
 
 // Mock the admin client
@@ -32,8 +32,8 @@ import { checkSite } from '@/lib/checker'
 describe('POST /api/checks/run', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockSendIncidentEmail.mockResolvedValue(undefined)
-    mockSendIncidentSms.mockResolvedValue(undefined)
+    mockSendIncidentAlert.mockResolvedValue(undefined)
+    mockSendIncidentSlack.mockResolvedValue(undefined)
     process.env.CRON_SECRET = 'test-secret'
   })
 
@@ -93,7 +93,7 @@ describe('POST /api/checks/run', () => {
     expect(body).toEqual({ message: 'No sites to check', checks: 0, incidents: 0 })
   })
 
-  test('hard failure (HTTP 500) creates incident immediately, sends email and SMS', async () => {
+  test('hard failure (HTTP 500) creates incident, sends email and Slack alert', async () => {
     const site = { id: 'site-1', name: 'Test', url: 'https://example.com' }
 
     mockFrom.mockImplementation((table: string) => {
@@ -132,10 +132,7 @@ describe('POST /api/checks/run', () => {
       if (table === 'contacts') {
         return {
           select: () => ({
-            data: [
-              { type: 'email', email: 'alice@example.com', phone: null },
-              { type: 'sms', email: null, phone: '+15551234567' },
-            ],
+            data: [{ email: 'alice@example.com' }],
           }),
         }
       }
@@ -157,17 +154,18 @@ describe('POST /api/checks/run', () => {
     const body = await response.json()
     expect(body.checks).toBe(1)
     expect(body.incidents).toBe(1)
-    expect(mockSendIncidentEmail).toHaveBeenCalledWith({
+    expect(mockSendIncidentAlert).toHaveBeenCalledWith({
       siteName: 'Test',
       siteUrl: 'https://example.com',
       error: 'HTTP 500',
       incidentId: 'inc-1',
       contactEmails: ['alice@example.com'],
     })
-    expect(mockSendIncidentSms).toHaveBeenCalledWith({
+    expect(mockSendIncidentSlack).toHaveBeenCalledWith({
       siteName: 'Test',
+      siteUrl: 'https://example.com',
+      error: 'HTTP 500',
       incidentId: 'inc-1',
-      contactPhones: ['+15551234567'],
     })
   })
 
@@ -228,8 +226,8 @@ describe('POST /api/checks/run', () => {
     const response = await POST(request)
     const body = await response.json()
     expect(body.incidents).toBe(0)
-    expect(mockSendIncidentEmail).not.toHaveBeenCalled()
-    expect(mockSendIncidentSms).not.toHaveBeenCalled()
+    expect(mockSendIncidentAlert).not.toHaveBeenCalled()
+    expect(mockSendIncidentSlack).not.toHaveBeenCalled()
   })
 
   test('three soft failures within an hour creates incident', async () => {
@@ -284,7 +282,7 @@ describe('POST /api/checks/run', () => {
       if (table === 'contacts') {
         return {
           select: () => ({
-            data: [{ type: 'email', email: 'alice@example.com', phone: null }],
+            data: [{ email: 'alice@example.com' }],
           }),
         }
       }
@@ -305,7 +303,8 @@ describe('POST /api/checks/run', () => {
     const response = await POST(request)
     const body = await response.json()
     expect(body.incidents).toBe(1)
-    expect(mockSendIncidentEmail).toHaveBeenCalled()
+    expect(mockSendIncidentAlert).toHaveBeenCalled()
+    expect(mockSendIncidentSlack).toHaveBeenCalled()
   })
 
   test('two soft failures within an hour does not create incident', async () => {
@@ -368,8 +367,8 @@ describe('POST /api/checks/run', () => {
     const response = await POST(request)
     const body = await response.json()
     expect(body.incidents).toBe(0)
-    expect(mockSendIncidentEmail).not.toHaveBeenCalled()
-    expect(mockSendIncidentSms).not.toHaveBeenCalled()
+    expect(mockSendIncidentAlert).not.toHaveBeenCalled()
+    expect(mockSendIncidentSlack).not.toHaveBeenCalled()
   })
 
   test('records checks without creating incidents for successful checks', async () => {
@@ -410,8 +409,8 @@ describe('POST /api/checks/run', () => {
     expect(mockInsert).toHaveBeenCalledWith(
       expect.objectContaining({ status: 'success', status_code: 200 })
     )
-    expect(mockSendIncidentEmail).not.toHaveBeenCalled()
-    expect(mockSendIncidentSms).not.toHaveBeenCalled()
+    expect(mockSendIncidentAlert).not.toHaveBeenCalled()
+    expect(mockSendIncidentSlack).not.toHaveBeenCalled()
   })
 
   test('skips rejected promises from Promise.allSettled', async () => {
@@ -455,7 +454,7 @@ describe('POST /api/checks/run', () => {
     expect(body.incidents).toBe(0)
   })
 
-  test('does not send email for existing open incident', async () => {
+  test('does not send alerts for existing open incident', async () => {
     const site = { id: 'site-1', name: 'Test', url: 'https://example.com' }
 
     mockFrom.mockImplementation((table: string) => {
@@ -503,8 +502,8 @@ describe('POST /api/checks/run', () => {
     const response = await POST(request)
     const body = await response.json()
     expect(body.incidents).toBe(0)
-    expect(mockSendIncidentEmail).not.toHaveBeenCalled()
-    expect(mockSendIncidentSms).not.toHaveBeenCalled()
+    expect(mockSendIncidentAlert).not.toHaveBeenCalled()
+    expect(mockSendIncidentSlack).not.toHaveBeenCalled()
   })
 })
 

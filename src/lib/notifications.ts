@@ -1,5 +1,4 @@
 import { Resend } from "resend"
-import twilio from "twilio"
 
 let _resend: Resend | null = null
 function getResend() {
@@ -7,18 +6,7 @@ function getResend() {
   return _resend
 }
 
-let _twilioClient: twilio.Twilio | null = null
-function getTwilioClient() {
-  if (!_twilioClient) {
-    _twilioClient = twilio(
-      process.env.TWILIO_ACCOUNT_SID,
-      process.env.TWILIO_AUTH_TOKEN
-    )
-  }
-  return _twilioClient
-}
-
-type IncidentEmailParams = {
+type IncidentAlertParams = {
   siteName: string
   siteUrl: string
   error: string | null
@@ -26,13 +14,13 @@ type IncidentEmailParams = {
   contactEmails: string[]
 }
 
-export async function sendIncidentEmail({
+export async function sendIncidentAlert({
   siteName,
   siteUrl,
   error,
   incidentId,
   contactEmails,
-}: IncidentEmailParams) {
+}: IncidentAlertParams) {
   if (contactEmails.length === 0) return
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://status.rootsofprogress.org"
@@ -60,42 +48,46 @@ export async function sendIncidentEmail({
   }
 }
 
-type IncidentSmsParams = {
-  siteName: string
-  incidentId: string
-  contactPhones: string[]
-}
-
-export async function sendIncidentSms({
-  siteName,
-  incidentId,
-  contactPhones,
-}: IncidentSmsParams) {
-  if (contactPhones.length === 0) return
-
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://status.rootsofprogress.org"
-  const incidentLink = `${appUrl}/incidents/${incidentId}`
-  const body = `[Down] ${siteName} is not responding. ${incidentLink}`
-  const from = process.env.TWILIO_FROM_NUMBER
-
-  for (const to of contactPhones) {
-    try {
-      await getTwilioClient().messages.create({ body, from, to })
-    } catch (err) {
-      console.error(`Failed to send incident SMS to ${to}:`, err)
-    }
-  }
-}
-
-// Backward-compatible wrapper
-type IncidentAlertParams = {
+type SlackAlertParams = {
   siteName: string
   siteUrl: string
   error: string | null
   incidentId: string
-  contactEmails: string[]
 }
 
-export async function sendIncidentAlert(params: IncidentAlertParams) {
-  return sendIncidentEmail(params)
+export async function sendIncidentSlack({
+  siteName,
+  siteUrl,
+  error,
+  incidentId,
+}: SlackAlertParams) {
+  const webhookUrl = process.env.SLACK_WEBHOOK_URL
+  if (!webhookUrl) return
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://status.rootsofprogress.org"
+  const incidentLink = `${appUrl}/incidents/${incidentId}`
+  const mention = process.env.SLACK_MENTION || ""
+  const mentionPrefix = mention ? `${mention} ` : ""
+
+  const text = [
+    `${mentionPrefix}*${siteName}* is down`,
+    `URL: ${siteUrl}`,
+    error ? `Error: ${error}` : null,
+    `<${incidentLink}|View incident>`,
+  ]
+    .filter(Boolean)
+    .join("\n")
+
+  try {
+    const response = await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    })
+    if (!response.ok) {
+      console.error("Slack webhook returned", response.status)
+    }
+  } catch (err) {
+    console.error("Failed to send Slack alert:", err)
+  }
 }

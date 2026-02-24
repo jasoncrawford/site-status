@@ -37,12 +37,12 @@ describe("addContact action", () => {
     mockGetUser.mockResolvedValue({ data: { user: null } })
 
     const formData = new FormData()
-    formData.set("contact_email", "test@example.com")
+    formData.set("email", "test@example.com")
 
     await expect(addContact(formData)).rejects.toThrow("NEXT_REDIRECT:/login")
   })
 
-  test("inserts email contact for authenticated users", async () => {
+  test("inserts contact for authenticated users", async () => {
     mockGetUser.mockResolvedValue({
       data: { user: { id: "user-1" } },
     })
@@ -51,42 +51,11 @@ describe("addContact action", () => {
     mockFrom.mockReturnValue({ insert: mockInsert })
 
     const formData = new FormData()
-    formData.set("contact_type", "email")
-    formData.set("contact_email", "test@example.com")
+    formData.set("email", "test@example.com")
 
     await addContact(formData)
     expect(mockFrom).toHaveBeenCalledWith("contacts")
-    expect(mockInsert).toHaveBeenCalledWith({ type: "email", email: "test@example.com" })
-  })
-
-  test("inserts SMS contact for authenticated users", async () => {
-    mockGetUser.mockResolvedValue({
-      data: { user: { id: "user-1" } },
-    })
-
-    const mockInsert = vi.fn().mockReturnValue({ error: null })
-    mockFrom.mockReturnValue({ insert: mockInsert })
-
-    const formData = new FormData()
-    formData.set("contact_type", "sms")
-    formData.set("contact_phone", "+15551234567")
-
-    await addContact(formData)
-    expect(mockFrom).toHaveBeenCalledWith("contacts")
-    expect(mockInsert).toHaveBeenCalledWith({ type: "sms", phone: "+15551234567" })
-  })
-
-  test("rejects invalid phone number format", async () => {
-    mockGetUser.mockResolvedValue({
-      data: { user: { id: "user-1" } },
-    })
-
-    const formData = new FormData()
-    formData.set("contact_type", "sms")
-    formData.set("contact_phone", "555-1234")
-
-    await addContact(formData)
-    expect(mockFrom).not.toHaveBeenCalled()
+    expect(mockInsert).toHaveBeenCalledWith({ email: "test@example.com" })
   })
 
   test("does nothing if email is empty", async () => {
@@ -95,35 +64,8 @@ describe("addContact action", () => {
     })
 
     const formData = new FormData()
-    formData.set("contact_type", "email")
     await addContact(formData)
     expect(mockFrom).not.toHaveBeenCalled()
-  })
-
-  test("does nothing if phone is empty for SMS", async () => {
-    mockGetUser.mockResolvedValue({
-      data: { user: { id: "user-1" } },
-    })
-
-    const formData = new FormData()
-    formData.set("contact_type", "sms")
-    await addContact(formData)
-    expect(mockFrom).not.toHaveBeenCalled()
-  })
-
-  test("defaults to email type when contact_type is not set", async () => {
-    mockGetUser.mockResolvedValue({
-      data: { user: { id: "user-1" } },
-    })
-
-    const mockInsert = vi.fn().mockReturnValue({ error: null })
-    mockFrom.mockReturnValue({ insert: mockInsert })
-
-    const formData = new FormData()
-    formData.set("contact_email", "test@example.com")
-
-    await addContact(formData)
-    expect(mockInsert).toHaveBeenCalledWith({ type: "email", email: "test@example.com" })
   })
 })
 
