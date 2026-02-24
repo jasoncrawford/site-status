@@ -21,7 +21,7 @@ export async function sendInvitation(formData: FormData) {
   if (!user) redirect("/login")
 
   const email = (formData.get("email") as string)?.trim()
-  if (!email) return
+  if (!email) return { error: "Email address is required." }
 
   const token = randomBytes(32).toString("hex")
 

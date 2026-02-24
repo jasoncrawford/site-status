@@ -15,7 +15,7 @@ export async function addSite(formData: FormData) {
   const name = (formData.get("name") as string)?.trim()
   const url = (formData.get("url") as string)?.trim()
 
-  if (!name || !url) return
+  if (!name || !url) return { error: "Name and URL are both required." }
 
   const { data: maxRow } = await supabase
     .from("sites")
@@ -42,7 +42,7 @@ export async function editSite(siteId: string, formData: FormData) {
   const name = (formData.get("name") as string)?.trim()
   const url = (formData.get("url") as string)?.trim()
 
-  if (!name || !url) return
+  if (!name || !url) return { error: "Name and URL are both required." }
 
   const { error } = await supabase.from("sites").update({ name, url }).eq("id", siteId)
   if (error) return { error: `Failed to update site: ${error.message}` }
