@@ -13,7 +13,10 @@ export default function AddContactForm() {
   const [type, setType] = useState<"email" | "slack">("email")
 
   return (
-    <form action={addContact} className="flex gap-2">
+    <form action={async (formData: FormData) => {
+      await addContact(formData)
+      setType("email")
+    }} className="flex gap-2">
       <input type="hidden" name="contact_type" value={type} />
       <select
         value={type}
