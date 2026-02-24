@@ -107,7 +107,7 @@ describe("sendIncidentSlack", () => {
     expect(options.method).toBe("POST")
 
     const body = JSON.parse(options.body)
-    expect(body.text).toContain("<!channel>")
+    expect(body.text).toContain("Site status alert: new incident")
     expect(body.text).toContain("*Main Website* is down")
     expect(body.text).toContain("https://example.com")
     expect(body.text).toContain("HTTP 503")

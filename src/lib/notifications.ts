@@ -69,7 +69,7 @@ export async function sendIncidentSlack({
   const incidentLink = `${appUrl}/incidents/${incidentId}`
 
   const text = [
-    `<!channel> *${siteName}* is down`,
+    `Site status alert: new incident — *${siteName}* is down`,
     `URL: ${siteUrl}`,
     error ? `Error: ${error}` : null,
     `<${incidentLink}|View incident>`,
