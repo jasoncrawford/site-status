@@ -20,11 +20,13 @@ export async function addContact(formData: FormData) {
     const webhookUrl = formData.get("contact_webhook_url") as string
     if (!webhookUrl) return
     if (!SLACK_WEBHOOK_REGEX.test(webhookUrl)) return
-    await supabase.from("contacts").insert({ type: "slack", webhook_url: webhookUrl })
+    const { error } = await supabase.from("contacts").insert({ type: "slack", webhook_url: webhookUrl })
+    if (error) console.error("Failed to insert Slack contact:", error)
   } else {
     const email = formData.get("contact_email") as string
     if (!email) return
-    await supabase.from("contacts").insert({ type: "email", email })
+    const { error } = await supabase.from("contacts").insert({ type: "email", email })
+    if (error) console.error("Failed to insert email contact:", error)
   }
 
   revalidatePath("/settings")
