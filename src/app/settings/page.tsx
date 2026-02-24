@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import type { Contact, Invitation } from "@/lib/supabase/types"
 import { deleteContact } from "./actions"
 import AddContactForm from "@/components/AddContactForm"
+import CanarySettings from "@/components/CanarySettings"
 import { sendInvitation, revokeInvitation } from "./invite-actions"
 import Link from "next/link"
 
@@ -30,6 +31,14 @@ export default async function SettingsPage() {
     .order("created_at")
 
   const typedInvitations = (invitations ?? []) as Invitation[]
+
+  const { data: canarySetting } = await supabase
+    .from("settings")
+    .select("value")
+    .eq("key", "canary_status_code")
+    .single()
+
+  const canaryCode = canarySetting ? parseInt(canarySetting.value, 10) : 200
 
   return (
     <main className="max-w-[720px] mx-auto" style={{ padding: "32px 24px 64px" }}>
@@ -172,6 +181,25 @@ export default async function SettingsPage() {
             Send
           </button>
         </form>
+      </div>
+
+      <div
+        className="rounded mb-6"
+        style={{
+          backgroundColor: "#FFFFFF",
+          border: "1px solid #E8E4DF",
+          padding: "28px",
+        }}
+      >
+        <h2 className="text-xl font-bold mb-1.5" style={{ color: "#1A1A1A" }}>
+          Canary
+        </h2>
+        <p className="text-sm mb-5" style={{ color: "#5C5C5C" }}>
+          The <code style={{ fontSize: "13px", backgroundColor: "#F5F3F0", padding: "1px 5px", borderRadius: "3px" }}>/canary</code> endpoint
+          responds with the status code below. Add it as a monitored site to test alerting end-to-end.
+        </p>
+
+        <CanarySettings currentCode={canaryCode} />
       </div>
     </main>
   )
