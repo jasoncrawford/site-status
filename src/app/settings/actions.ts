@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 
+const SLACK_WEBHOOK_REGEX = /^https:\/\/hooks\.slack\.com\/services\/.+$/
+
 export async function addContact(formData: FormData) {
   const supabase = await createClient()
   const {
@@ -12,10 +14,22 @@ export async function addContact(formData: FormData) {
 
   if (!user) redirect("/login")
 
-  const email = formData.get("email") as string
-  if (!email) return
+  const type = (formData.get("contact_type") as string) || "email"
 
-  await supabase.from("contacts").insert({ email })
+  if (type === "slack") {
+    const webhookUrl = formData.get("contact_webhook_url") as string
+    const label = formData.get("contact_label") as string
+    if (!webhookUrl || !label) return
+    if (!SLACK_WEBHOOK_REGEX.test(webhookUrl)) return
+    const { error } = await supabase.from("contacts").insert({ type: "slack", webhook_url: webhookUrl, label })
+    if (error) console.error("Failed to insert Slack contact:", error)
+  } else {
+    const email = formData.get("contact_email") as string
+    if (!email) return
+    const { error } = await supabase.from("contacts").insert({ type: "email", email })
+    if (error) console.error("Failed to insert email contact:", error)
+  }
+
   revalidatePath("/settings")
 }
 
