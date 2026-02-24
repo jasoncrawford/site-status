@@ -1,7 +1,8 @@
 -- Add type and webhook_url columns to contacts for Slack alerting
 ALTER TABLE contacts
   ADD COLUMN type text NOT NULL DEFAULT 'email' CHECK (type IN ('email', 'slack')),
-  ADD COLUMN webhook_url text;
+  ADD COLUMN webhook_url text,
+  ADD COLUMN label text;
 
 -- Make email nullable (Slack contacts won't have one)
 ALTER TABLE contacts ALTER COLUMN email DROP NOT NULL;

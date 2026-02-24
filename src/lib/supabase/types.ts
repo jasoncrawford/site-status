@@ -29,6 +29,7 @@ export type Contact = {
   type: 'email' | 'slack'
   email: string | null
   webhook_url: string | null
+  label: string | null
   created_at: string
 }
 

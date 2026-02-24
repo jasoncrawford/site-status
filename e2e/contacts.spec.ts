@@ -28,13 +28,14 @@ test("adds an email contact and displays it in the list", async ({ page }) => {
 test("adds a Slack contact and displays it in the list", async ({ page }) => {
   await page.goto("/settings");
   await page.getByRole("combobox").selectOption("slack");
+  await page.getByPlaceholder("#channel name").fill("#alerts");
   await page.getByPlaceholder("https://hooks.slack.com/services/...").fill("https://hooks.slack.com/services/T00/B00/test");
   await page.getByRole("button", { name: "Add" }).click();
 
-  const contactRow = page.getByRole("listitem").filter({ hasText: "Slack webhook" });
+  const contactRow = page.getByRole("listitem").filter({ hasText: "#alerts" });
   await expect(contactRow).toBeVisible();
   await expect(contactRow.getByText("slack")).toBeVisible();
-  await expect(contactRow.getByText("Slack webhook")).toBeVisible();
+  await expect(contactRow.getByText("#alerts")).toBeVisible();
   await expect(contactRow.getByRole("button", { name: "Remove" })).toBeVisible();
 });
 
@@ -53,12 +54,13 @@ test("removes a Slack contact", async ({ page, adminClient }) => {
   await adminClient.from("contacts").insert({
     type: "slack",
     webhook_url: "https://hooks.slack.com/services/T00/B00/remove-test",
+    label: "#ops-alerts",
   });
 
   await page.goto("/settings");
-  const contactRow = page.getByRole("listitem").filter({ hasText: "Slack webhook" });
+  const contactRow = page.getByRole("listitem").filter({ hasText: "#ops-alerts" });
   await expect(contactRow).toBeVisible();
 
   await contactRow.getByRole("button", { name: "Remove" }).click();
-  await expect(page.getByText("Slack webhook")).not.toBeVisible();
+  await expect(page.getByText("#ops-alerts")).not.toBeVisible();
 });

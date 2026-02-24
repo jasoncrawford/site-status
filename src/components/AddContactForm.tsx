@@ -3,6 +3,12 @@
 import { useState } from "react"
 import { addContact } from "@/app/settings/actions"
 
+const inputStyle = {
+  border: "1px solid #E8E4DF",
+  backgroundColor: "#FFFFFF",
+  color: "#1A1A1A",
+}
+
 export default function AddContactForm() {
   const [type, setType] = useState<"email" | "slack">("email")
 
@@ -13,11 +19,7 @@ export default function AddContactForm() {
         value={type}
         onChange={(e) => setType(e.target.value as "email" | "slack")}
         className="text-sm px-2 py-2 rounded"
-        style={{
-          border: "1px solid #E8E4DF",
-          backgroundColor: "#FFFFFF",
-          color: "#1A1A1A",
-        }}
+        style={inputStyle}
       >
         <option value="email">Email</option>
         <option value="slack">Slack</option>
@@ -31,27 +33,31 @@ export default function AddContactForm() {
           data-1p-ignore
           autoComplete="off"
           className="flex-1 text-sm px-3 py-2 rounded outline-none transition-colors"
-          style={{
-            border: "1px solid #E8E4DF",
-            backgroundColor: "#FFFFFF",
-            color: "#1A1A1A",
-          }}
+          style={inputStyle}
         />
       ) : (
-        <input
-          type="url"
-          name="contact_webhook_url"
-          placeholder="https://hooks.slack.com/services/..."
-          required
-          data-1p-ignore
-          autoComplete="off"
-          className="flex-1 text-sm px-3 py-2 rounded outline-none transition-colors"
-          style={{
-            border: "1px solid #E8E4DF",
-            backgroundColor: "#FFFFFF",
-            color: "#1A1A1A",
-          }}
-        />
+        <>
+          <input
+            type="text"
+            name="contact_label"
+            placeholder="#channel name"
+            required
+            data-1p-ignore
+            autoComplete="off"
+            className="text-sm px-3 py-2 rounded outline-none transition-colors"
+            style={{ ...inputStyle, width: "140px" }}
+          />
+          <input
+            type="url"
+            name="contact_webhook_url"
+            placeholder="https://hooks.slack.com/services/..."
+            required
+            data-1p-ignore
+            autoComplete="off"
+            className="flex-1 text-sm px-3 py-2 rounded outline-none transition-colors"
+            style={inputStyle}
+          />
+        </>
       )}
       <button
         type="submit"

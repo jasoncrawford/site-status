@@ -69,6 +69,7 @@ describe("addContact action", () => {
 
     const formData = new FormData()
     formData.set("contact_type", "slack")
+    formData.set("contact_label", "#alerts")
     formData.set("contact_webhook_url", "https://hooks.slack.com/services/T00/B00/xxx")
 
     await addContact(formData)
@@ -76,6 +77,7 @@ describe("addContact action", () => {
     expect(mockInsert).toHaveBeenCalledWith({
       type: "slack",
       webhook_url: "https://hooks.slack.com/services/T00/B00/xxx",
+      label: "#alerts",
     })
   })
 
@@ -110,6 +112,19 @@ describe("addContact action", () => {
 
     const formData = new FormData()
     formData.set("contact_type", "slack")
+    formData.set("contact_label", "#alerts")
+    await addContact(formData)
+    expect(mockFrom).not.toHaveBeenCalled()
+  })
+
+  test("does nothing if label is empty for Slack", async () => {
+    mockGetUser.mockResolvedValue({
+      data: { user: { id: "user-1" } },
+    })
+
+    const formData = new FormData()
+    formData.set("contact_type", "slack")
+    formData.set("contact_webhook_url", "https://hooks.slack.com/services/T00/B00/xxx")
     await addContact(formData)
     expect(mockFrom).not.toHaveBeenCalled()
   })

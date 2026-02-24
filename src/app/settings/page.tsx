@@ -80,7 +80,7 @@ export default async function SettingsPage() {
                   >
                     {contact.type}
                   </span>
-                  {contact.type === "slack" ? "Slack webhook" : contact.email}
+                  {contact.type === "slack" ? (contact.label || "Slack webhook") : contact.email}
                 </span>
                 <form action={deleteContact.bind(null, contact.id)}>
                   <button
