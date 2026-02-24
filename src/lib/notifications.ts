@@ -86,6 +86,7 @@ export async function sendIncidentSlack({
         headers: { "Content-Type": "application/json" },
         body,
       })
+      await response.text()
       if (!response.ok) {
         console.error("Slack webhook returned", response.status)
       }
