@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 
+const E164_REGEX = /^\+[1-9]\d{1,14}$/
+
 export async function addContact(formData: FormData) {
   const supabase = await createClient()
   const {
@@ -12,10 +14,19 @@ export async function addContact(formData: FormData) {
 
   if (!user) redirect("/login")
 
-  const email = formData.get("email") as string
-  if (!email) return
+  const type = (formData.get("contact_type") as string) || "email"
 
-  await supabase.from("contacts").insert({ email })
+  if (type === "sms") {
+    const phone = formData.get("contact_phone") as string
+    if (!phone) return
+    if (!E164_REGEX.test(phone)) return
+    await supabase.from("contacts").insert({ type: "sms", phone })
+  } else {
+    const email = formData.get("contact_email") as string
+    if (!email) return
+    await supabase.from("contacts").insert({ type: "email", email })
+  }
+
   revalidatePath("/settings")
 }
 
