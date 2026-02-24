@@ -4,6 +4,7 @@ import type { Contact, Invitation } from "@/lib/supabase/types"
 import { deleteContact } from "./actions"
 import AddContactForm from "@/components/AddContactForm"
 import { sendInvitation, revokeInvitation } from "./invite-actions"
+import ActionForm from "@/components/ActionForm"
 import Link from "next/link"
 
 export const revalidate = 0
@@ -82,7 +83,7 @@ export default async function SettingsPage() {
                   </span>
                   {contact.type === "slack" ? (contact.label || "Slack webhook") : contact.email}
                 </span>
-                <form action={deleteContact.bind(null, contact.id)}>
+                <ActionForm action={deleteContact.bind(null, contact.id)}>
                   <button
                     type="submit"
                     className="text-[13px] px-3 py-1 rounded cursor-pointer transition-colors"
@@ -94,7 +95,7 @@ export default async function SettingsPage() {
                   >
                     Remove
                   </button>
-                </form>
+                </ActionForm>
               </li>
             ))
           )}
@@ -133,7 +134,7 @@ export default async function SettingsPage() {
                 <span className="text-[15px]" style={{ color: "#1A1A1A" }}>
                   {invitation.email}
                 </span>
-                <form action={revokeInvitation.bind(null, invitation.id)}>
+                <ActionForm action={revokeInvitation.bind(null, invitation.id)}>
                   <button
                     type="submit"
                     className="text-[13px] px-3 py-1 rounded cursor-pointer transition-colors"
@@ -145,13 +146,13 @@ export default async function SettingsPage() {
                   >
                     Revoke
                   </button>
-                </form>
+                </ActionForm>
               </li>
             ))
           )}
         </ul>
 
-        <form action={sendInvitation} className="flex gap-2">
+        <ActionForm action={sendInvitation} className="flex gap-2">
           <input
             type="email"
             name="email"
@@ -171,7 +172,7 @@ export default async function SettingsPage() {
           >
             Send
           </button>
-        </form>
+        </ActionForm>
       </div>
     </main>
   )

@@ -5,6 +5,7 @@ import type { Incident, Site, Check } from "@/lib/supabase/types"
 import CheckLogTable from "@/components/CheckLogTable"
 import { LocalDateTime } from "@/components/LocalTime"
 import { resolveIncident } from "./actions"
+import ActionForm from "@/components/ActionForm"
 
 export const revalidate = 0
 
@@ -140,7 +141,7 @@ export default async function IncidentDetailPage({
 
         {isOpen && user && (
           <div className="mt-5 pt-5" style={{ borderTop: "1px solid #F0ECE8" }}>
-            <form action={resolveIncident.bind(null, incident.id)}>
+            <ActionForm action={resolveIncident.bind(null, incident.id)}>
               <button
                 type="submit"
                 className="inline-flex items-center gap-1.5 px-5 py-2 text-sm font-semibold text-white rounded cursor-pointer transition-colors"
@@ -159,7 +160,7 @@ export default async function IncidentDetailPage({
                 </svg>
                 Resolve
               </button>
-            </form>
+            </ActionForm>
           </div>
         )}
       </div>

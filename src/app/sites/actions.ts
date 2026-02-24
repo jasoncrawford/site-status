@@ -15,7 +15,7 @@ export async function addSite(formData: FormData) {
   const name = (formData.get("name") as string)?.trim()
   const url = (formData.get("url") as string)?.trim()
 
-  if (!name || !url) return
+  if (!name || !url) return { error: "Name and URL are both required." }
 
   const { data: maxRow } = await supabase
     .from("sites")
@@ -26,7 +26,8 @@ export async function addSite(formData: FormData) {
 
   const position = (maxRow?.position ?? -1) + 1
 
-  await supabase.from("sites").insert({ name, url, position })
+  const { error } = await supabase.from("sites").insert({ name, url, position })
+  if (error) return { error: `Failed to add site: ${error.message}` }
   revalidatePath("/")
 }
 
@@ -41,9 +42,10 @@ export async function editSite(siteId: string, formData: FormData) {
   const name = (formData.get("name") as string)?.trim()
   const url = (formData.get("url") as string)?.trim()
 
-  if (!name || !url) return
+  if (!name || !url) return { error: "Name and URL are both required." }
 
-  await supabase.from("sites").update({ name, url }).eq("id", siteId)
+  const { error } = await supabase.from("sites").update({ name, url }).eq("id", siteId)
+  if (error) return { error: `Failed to update site: ${error.message}` }
   revalidatePath("/")
   revalidatePath(`/sites/${siteId}`)
 }
@@ -56,7 +58,8 @@ export async function deleteSite(siteId: string) {
 
   if (!user) redirect("/login")
 
-  await supabase.from("sites").delete().eq("id", siteId)
+  const { error } = await supabase.from("sites").delete().eq("id", siteId)
+  if (error) return { error: `Failed to delete site: ${error.message}` }
   revalidatePath("/")
 }
 
@@ -69,10 +72,11 @@ export async function reorderSites(orderedIds: string[]) {
   if (!user) redirect("/login")
 
   for (let i = 0; i < orderedIds.length; i++) {
-    await supabase
+    const { error } = await supabase
       .from("sites")
       .update({ position: i })
       .eq("id", orderedIds[i])
+    if (error) return { error: `Failed to reorder sites: ${error.message}` }
   }
 
   revalidatePath("/")

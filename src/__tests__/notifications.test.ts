@@ -91,7 +91,7 @@ describe("sendIncidentSlack", () => {
   })
 
   test("posts to all Slack webhooks with correct content", async () => {
-    mockFetch.mockResolvedValue({ ok: true })
+    mockFetch.mockResolvedValue({ ok: true, text: () => Promise.resolve("") })
 
     await sendIncidentSlack({
       siteName: "Main Website",
@@ -115,7 +115,7 @@ describe("sendIncidentSlack", () => {
   })
 
   test("sends to multiple webhooks", async () => {
-    mockFetch.mockResolvedValue({ ok: true })
+    mockFetch.mockResolvedValue({ ok: true, text: () => Promise.resolve("") })
 
     await sendIncidentSlack({
       siteName: "Main Website",
@@ -172,7 +172,7 @@ describe("sendIncidentSlack", () => {
 
   test("logs error when webhook returns non-ok status", async () => {
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {})
-    mockFetch.mockResolvedValue({ ok: false, status: 403 })
+    mockFetch.mockResolvedValue({ ok: false, status: 403, text: () => Promise.resolve("Forbidden") })
 
     await sendIncidentSlack({
       siteName: "Main Website",
@@ -187,7 +187,7 @@ describe("sendIncidentSlack", () => {
   })
 
   test("omits error line when error is null", async () => {
-    mockFetch.mockResolvedValue({ ok: true })
+    mockFetch.mockResolvedValue({ ok: true, text: () => Promise.resolve("") })
 
     await sendIncidentSlack({
       siteName: "Main Website",

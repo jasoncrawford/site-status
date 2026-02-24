@@ -15,13 +15,15 @@ export async function resolveIncident(incidentId: string) {
     redirect("/login")
   }
 
-  await supabase
+  const { error } = await supabase
     .from("incidents")
     .update({
       status: "resolved",
       resolved_at: new Date().toISOString(),
     })
     .eq("id", incidentId)
+
+  if (error) return { error: `Failed to resolve incident: ${error.message}` }
 
   revalidatePath(`/incidents/${incidentId}`)
   revalidatePath("/")

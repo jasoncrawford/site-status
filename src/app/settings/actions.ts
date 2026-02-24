@@ -19,15 +19,15 @@ export async function addContact(formData: FormData) {
   if (type === "slack") {
     const webhookUrl = formData.get("contact_webhook_url") as string
     const label = formData.get("contact_label") as string
-    if (!webhookUrl || !label) return
-    if (!SLACK_WEBHOOK_REGEX.test(webhookUrl)) return
+    if (!webhookUrl || !label) return { error: "Webhook URL and label are both required." }
+    if (!SLACK_WEBHOOK_REGEX.test(webhookUrl)) return { error: "Webhook URL must be a valid Slack webhook (https://hooks.slack.com/services/...)." }
     const { error } = await supabase.from("contacts").insert({ type: "slack", webhook_url: webhookUrl, label })
-    if (error) console.error("Failed to insert Slack contact:", error)
+    if (error) return { error: `Failed to add Slack contact: ${error.message}` }
   } else {
     const email = formData.get("contact_email") as string
-    if (!email) return
+    if (!email) return { error: "Email address is required." }
     const { error } = await supabase.from("contacts").insert({ type: "email", email })
-    if (error) console.error("Failed to insert email contact:", error)
+    if (error) return { error: `Failed to add email contact: ${error.message}` }
   }
 
   revalidatePath("/settings")
@@ -41,6 +41,7 @@ export async function deleteContact(contactId: string) {
 
   if (!user) redirect("/login")
 
-  await supabase.from("contacts").delete().eq("id", contactId)
+  const { error } = await supabase.from("contacts").delete().eq("id", contactId)
+  if (error) return { error: `Failed to remove contact: ${error.message}` }
   revalidatePath("/settings")
 }
