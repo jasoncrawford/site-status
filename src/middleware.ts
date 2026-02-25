@@ -4,6 +4,10 @@ import { NextResponse, type NextRequest } from "next/server"
 const protectedRoutes = ["/settings"]
 
 export async function middleware(request: NextRequest) {
+  if (request.method === "OPTIONS") {
+    return new NextResponse(null, { status: 204 })
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   })
