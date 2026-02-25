@@ -135,3 +135,7 @@ async function handleCheckRun(request: NextRequest) {
 }
 
 export { handleCheckRun as GET, handleCheckRun as POST }
+
+export function OPTIONS() {
+  return new NextResponse(null, { status: 204 })
+}
