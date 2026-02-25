@@ -74,9 +74,15 @@ export default async function SiteDetailPage({
           >
             {site.name}
           </h1>
-          <div className="text-sm break-all" style={{ color: "#5C5C5C" }}>
+          <a
+            href={site.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm break-all no-underline hover:underline"
+            style={{ color: "#5C5C5C" }}
+          >
             {site.url}
-          </div>
+          </a>
         </div>
 
         {user && (
