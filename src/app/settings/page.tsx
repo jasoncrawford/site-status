@@ -1,8 +1,11 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import type { Contact, Invitation } from "@/lib/supabase/types"
-import { addContact, deleteContact } from "./actions"
+import { deleteContact } from "./actions"
+import AddContactForm from "@/components/AddContactForm"
+import CanarySettings from "@/components/CanarySettings"
 import { sendInvitation, revokeInvitation } from "./invite-actions"
+import ActionForm from "@/components/ActionForm"
 import Link from "next/link"
 
 export const revalidate = 0
@@ -30,6 +33,14 @@ export default async function SettingsPage() {
 
   const typedInvitations = (invitations ?? []) as Invitation[]
 
+  const { data: canarySetting } = await supabase
+    .from("settings")
+    .select("value")
+    .eq("key", "canary_status_code")
+    .single()
+
+  const canaryCode = canarySetting ? parseInt(canarySetting.value, 10) : 200
+
   return (
     <main className="max-w-[720px] mx-auto" style={{ padding: "32px 24px 64px" }}>
       <div className="mb-7">
@@ -54,7 +65,7 @@ export default async function SettingsPage() {
           Contacts
         </h2>
         <p className="text-sm mb-5" style={{ color: "#5C5C5C" }}>
-          All contacts are notified by email when an incident is opened.
+          All contacts are notified when an incident is opened.
         </p>
 
         <ul className="list-none mb-5">
@@ -69,10 +80,19 @@ export default async function SettingsPage() {
                 className="flex items-center justify-between py-2.5"
                 style={{ borderBottom: "1px solid #F0EDEA" }}
               >
-                <span className="text-[15px]" style={{ color: "#1A1A1A" }}>
-                  {contact.email}
+                <span className="text-[15px] flex items-center gap-2" style={{ color: "#1A1A1A" }}>
+                  <span
+                    className="text-[11px] font-medium uppercase px-1.5 py-0.5 rounded"
+                    style={{
+                      backgroundColor: contact.type === "slack" ? "#E8F0E8" : "#E8EEF4",
+                      color: contact.type === "slack" ? "#2D6A2D" : "#2D4A6A",
+                    }}
+                  >
+                    {contact.type}
+                  </span>
+                  {contact.type === "slack" ? (contact.label || "Slack webhook") : contact.email}
                 </span>
-                <form action={deleteContact.bind(null, contact.id)}>
+                <ActionForm action={deleteContact.bind(null, contact.id)}>
                   <button
                     type="submit"
                     className="text-[13px] px-3 py-1 rounded cursor-pointer transition-colors"
@@ -84,33 +104,13 @@ export default async function SettingsPage() {
                   >
                     Remove
                   </button>
-                </form>
+                </ActionForm>
               </li>
             ))
           )}
         </ul>
 
-        <form action={addContact} className="flex gap-2">
-          <input
-            type="email"
-            name="email"
-            placeholder="email@example.com"
-            required
-            className="flex-1 text-sm px-3 py-2 rounded outline-none transition-colors"
-            style={{
-              border: "1px solid #E8E4DF",
-              backgroundColor: "#FFFFFF",
-              color: "#1A1A1A",
-            }}
-          />
-          <button
-            type="submit"
-            className="text-sm font-medium px-4 py-2 rounded cursor-pointer text-white"
-            style={{ backgroundColor: "#2C2C2C" }}
-          >
-            Add
-          </button>
-        </form>
+        <AddContactForm />
       </div>
 
       <div
@@ -143,7 +143,7 @@ export default async function SettingsPage() {
                 <span className="text-[15px]" style={{ color: "#1A1A1A" }}>
                   {invitation.email}
                 </span>
-                <form action={revokeInvitation.bind(null, invitation.id)}>
+                <ActionForm action={revokeInvitation.bind(null, invitation.id)}>
                   <button
                     type="submit"
                     className="text-[13px] px-3 py-1 rounded cursor-pointer transition-colors"
@@ -155,13 +155,13 @@ export default async function SettingsPage() {
                   >
                     Revoke
                   </button>
-                </form>
+                </ActionForm>
               </li>
             ))
           )}
         </ul>
 
-        <form action={sendInvitation} className="flex gap-2">
+        <ActionForm action={sendInvitation} className="flex gap-2">
           <input
             type="email"
             name="email"
@@ -181,7 +181,26 @@ export default async function SettingsPage() {
           >
             Send
           </button>
-        </form>
+        </ActionForm>
+      </div>
+
+      <div
+        className="rounded mb-6"
+        style={{
+          backgroundColor: "#FFFFFF",
+          border: "1px solid #E8E4DF",
+          padding: "28px",
+        }}
+      >
+        <h2 className="text-xl font-bold mb-1.5" style={{ color: "#1A1A1A" }}>
+          Canary
+        </h2>
+        <p className="text-sm mb-5" style={{ color: "#5C5C5C" }}>
+          The <code style={{ fontSize: "13px", backgroundColor: "#F5F3F0", padding: "1px 5px", borderRadius: "3px" }}>/canary</code> endpoint
+          responds with the status code below. Add it as a monitored site to test alerting end-to-end.
+        </p>
+
+        <CanarySettings currentCode={canaryCode} />
       </div>
     </main>
   )
