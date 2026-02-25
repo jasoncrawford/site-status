@@ -5,6 +5,7 @@ import type { Incident, Site, Check } from "@/lib/supabase/types"
 import CheckLogTable from "@/components/CheckLogTable"
 import { LocalDateTime } from "@/components/LocalTime"
 import { resolveIncident } from "./actions"
+import ActionForm from "@/components/ActionForm"
 
 export const revalidate = 0
 
@@ -122,6 +123,17 @@ export default async function IncidentDetailPage({
               Resolved <LocalDateTime dateString={incident.resolved_at} />
             </div>
           )}
+          <div className="text-sm" style={{ color: "#5C5C5C" }}>
+            <a
+              href={incident.site?.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="no-underline hover:underline"
+              style={{ color: "#5C5C5C" }}
+            >
+              {incident.site?.url}
+            </a>
+          </div>
           <div className="text-sm flex items-center gap-1.5" style={{ color: "#5C5C5C" }}>
             <span>Triggered by:</span>
             <span
@@ -140,7 +152,7 @@ export default async function IncidentDetailPage({
 
         {isOpen && user && (
           <div className="mt-5 pt-5" style={{ borderTop: "1px solid #F0ECE8" }}>
-            <form action={resolveIncident.bind(null, incident.id)}>
+            <ActionForm action={resolveIncident.bind(null, incident.id)}>
               <button
                 type="submit"
                 className="inline-flex items-center gap-1.5 px-5 py-2 text-sm font-semibold text-white rounded cursor-pointer transition-colors"
@@ -159,7 +171,7 @@ export default async function IncidentDetailPage({
                 </svg>
                 Resolve
               </button>
-            </form>
+            </ActionForm>
           </div>
         )}
       </div>

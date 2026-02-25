@@ -21,7 +21,7 @@ export async function sendInvitation(formData: FormData) {
   if (!user) redirect("/login")
 
   const email = (formData.get("email") as string)?.trim()
-  if (!email) return
+  if (!email) return { error: "Email address is required." }
 
   const token = randomBytes(32).toString("hex")
 
@@ -31,7 +31,7 @@ export async function sendInvitation(formData: FormData) {
     token,
   })
 
-  if (error) return
+  if (error) return { error: `Failed to create invitation: ${error.message}` }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://status.rootsofprogress.org"
   const inviteLink = `${appUrl}/invite/${token}`
@@ -48,8 +48,9 @@ export async function sendInvitation(formData: FormData) {
         <p><a href="${inviteLink}">Click here to set your password and create your account</a></p>
       `.trim(),
     })
-  } catch (err) {
-    console.error("Failed to send invitation email:", err)
+  } catch {
+    revalidatePath("/settings")
+    return { error: "Invitation created but failed to send email. The invite link is still valid." }
   }
 
   revalidatePath("/settings")
@@ -63,6 +64,7 @@ export async function revokeInvitation(invitationId: string) {
 
   if (!user) redirect("/login")
 
-  await supabase.from("invitations").delete().eq("id", invitationId)
+  const { error } = await supabase.from("invitations").delete().eq("id", invitationId)
+  if (error) return { error: `Failed to revoke invitation: ${error.message}` }
   revalidatePath("/settings")
 }

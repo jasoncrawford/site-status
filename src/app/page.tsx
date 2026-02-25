@@ -69,19 +69,22 @@ export default async function StatusPage() {
         {incidents.length > 0 ? (
           <div className="flex flex-col gap-3">
             {incidents.map((incident) => (
-              <Link
+              <div
                 key={incident.id}
-                href={`/incidents/${incident.id}`}
-                className="block no-underline"
+                className="relative"
                 style={{
                   backgroundColor: "#FFFFFF",
                   border: "1px solid #E8E4DF",
                   borderLeft: "3px solid #C4453C",
                   borderRadius: "4px",
                   padding: "16px 20px",
-                  color: "inherit",
                 }}
               >
+                <Link
+                  href={`/incidents/${incident.id}`}
+                  className="absolute inset-0 z-0"
+                  aria-label={`Incident on ${incident.site?.name}`}
+                />
                 <div className="flex items-baseline justify-between gap-3 flex-wrap">
                   <span
                     className="text-[15px] font-bold"
@@ -108,11 +111,17 @@ export default async function StatusPage() {
                       {incident.check.error}
                     </span>
                   )}
-                  <span className="text-[13px]" style={{ color: "#5C5C5C" }}>
+                  <a
+                    href={incident.site?.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[13px] relative z-10 no-underline hover:underline"
+                    style={{ color: "#5C5C5C" }}
+                  >
                     {incident.site?.url}
-                  </span>
+                  </a>
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         ) : (

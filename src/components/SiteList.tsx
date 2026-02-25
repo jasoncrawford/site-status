@@ -26,6 +26,7 @@ import { formatTimeAgo } from "@/lib/format"
 import { reorderSites } from "@/app/sites/actions"
 import SiteFormDialog from "@/components/SiteFormDialog"
 import AddSiteCard from "@/components/AddSiteCard"
+import { useErrorDialog } from "@/components/ErrorDialog"
 
 type SiteWithLastCheck = Site & { lastCheck: Check | null }
 
@@ -138,12 +139,16 @@ function SiteCard({
             {site.name}
           </span>
         </div>
-        <span
-          className="text-xs"
+        <a
+          href={site.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs relative z-10 no-underline hover:underline"
           style={{ color: "#5C5C5C" }}
+          onClick={e => e.stopPropagation()}
         >
           {site.url}
-        </span>
+        </a>
         {isAdmin && (
           <div className="relative z-10">
             <SiteFormDialog
@@ -202,6 +207,7 @@ export default function SiteList({
   isAdmin: boolean
 }) {
   const [sites, setSites] = useState(initialSites)
+  const { showError } = useErrorDialog()
 
   // Sync local state when server data changes (after add/edit/delete revalidation)
   const serverKey = initialSites.map((s) => `${s.id}:${s.name}:${s.url}`).join("|")
@@ -229,7 +235,9 @@ export default function SiteList({
     const reordered = arrayMove(sites, oldIndex, newIndex)
 
     setSites(reordered)
-    reorderSites(reordered.map((s) => s.id))
+    reorderSites(reordered.map((s) => s.id)).then((result) => {
+      if (result?.error) showError(result.error)
+    })
   }
 
   if (sites.length === 0 && !isAdmin) {

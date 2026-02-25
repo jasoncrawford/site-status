@@ -8,16 +8,20 @@ vi.mock("resend", () => ({
   },
 }))
 
-import { sendIncidentAlert } from "@/lib/notifications"
+// Mock fetch for Slack
+const mockFetch = vi.fn()
+vi.stubGlobal("fetch", mockFetch)
 
-describe("sendIncidentAlert", () => {
+import { sendIncidentEmail, sendIncidentSlack } from "@/lib/notifications"
+
+describe("sendIncidentEmail", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockSend.mockResolvedValue({ id: "email-1" })
   })
 
   test("sends email to all contacts with correct content", async () => {
-    await sendIncidentAlert({
+    await sendIncidentEmail({
       siteName: "Main Website",
       siteUrl: "https://example.com",
       error: "HTTP 503",
@@ -37,7 +41,7 @@ describe("sendIncidentAlert", () => {
   })
 
   test("does nothing when contactEmails is empty", async () => {
-    await sendIncidentAlert({
+    await sendIncidentEmail({
       siteName: "Main Website",
       siteUrl: "https://example.com",
       error: "HTTP 503",
@@ -52,7 +56,7 @@ describe("sendIncidentAlert", () => {
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {})
     mockSend.mockRejectedValue(new Error("API rate limit"))
 
-    await sendIncidentAlert({
+    await sendIncidentEmail({
       siteName: "Main Website",
       siteUrl: "https://example.com",
       error: "HTTP 503",
@@ -68,7 +72,7 @@ describe("sendIncidentAlert", () => {
   })
 
   test("works without error field", async () => {
-    await sendIncidentAlert({
+    await sendIncidentEmail({
       siteName: "Main Website",
       siteUrl: "https://example.com",
       error: null,
@@ -78,5 +82,122 @@ describe("sendIncidentAlert", () => {
 
     const call = mockSend.mock.calls[0][0]
     expect(call.html).not.toContain("<strong>Error:</strong>")
+  })
+})
+
+describe("sendIncidentSlack", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  test("posts to all Slack webhooks with correct content", async () => {
+    mockFetch.mockResolvedValue({ ok: true, text: () => Promise.resolve("") })
+
+    await sendIncidentSlack({
+      siteName: "Main Website",
+      siteUrl: "https://example.com",
+      error: "HTTP 503",
+      incidentId: "inc-1",
+      webhookUrls: ["https://hooks.slack.com/services/T00/B00/xxx"],
+    })
+
+    expect(mockFetch).toHaveBeenCalledTimes(1)
+    const [url, options] = mockFetch.mock.calls[0]
+    expect(url).toBe("https://hooks.slack.com/services/T00/B00/xxx")
+    expect(options.method).toBe("POST")
+
+    const body = JSON.parse(options.body)
+    expect(body.text).toContain("Site status alert: new incident")
+    expect(body.text).toContain("*Main Website* is down")
+    expect(body.text).toContain("https://example.com")
+    expect(body.text).toContain("HTTP 503")
+    expect(body.text).toContain("/incidents/inc-1")
+  })
+
+  test("sends to multiple webhooks", async () => {
+    mockFetch.mockResolvedValue({ ok: true, text: () => Promise.resolve("") })
+
+    await sendIncidentSlack({
+      siteName: "Main Website",
+      siteUrl: "https://example.com",
+      error: null,
+      incidentId: "inc-1",
+      webhookUrls: [
+        "https://hooks.slack.com/services/T00/B00/aaa",
+        "https://hooks.slack.com/services/T00/B00/bbb",
+      ],
+    })
+
+    expect(mockFetch).toHaveBeenCalledTimes(2)
+    expect(mockFetch.mock.calls[0][0]).toBe("https://hooks.slack.com/services/T00/B00/aaa")
+    expect(mockFetch.mock.calls[1][0]).toBe("https://hooks.slack.com/services/T00/B00/bbb")
+  })
+
+  test("does nothing when webhookUrls is empty", async () => {
+    await sendIncidentSlack({
+      siteName: "Main Website",
+      siteUrl: "https://example.com",
+      error: null,
+      incidentId: "inc-1",
+      webhookUrls: [],
+    })
+
+    expect(mockFetch).not.toHaveBeenCalled()
+  })
+
+  test("handles fetch failure gracefully and continues", async () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {})
+    mockFetch
+      .mockRejectedValueOnce(new Error("Network error"))
+      .mockResolvedValueOnce({ ok: true })
+
+    await sendIncidentSlack({
+      siteName: "Main Website",
+      siteUrl: "https://example.com",
+      error: null,
+      incidentId: "inc-1",
+      webhookUrls: [
+        "https://hooks.slack.com/services/T00/B00/aaa",
+        "https://hooks.slack.com/services/T00/B00/bbb",
+      ],
+    })
+
+    expect(mockFetch).toHaveBeenCalledTimes(2)
+    expect(consoleSpy).toHaveBeenCalledWith(
+      "Failed to send Slack alert:",
+      expect.any(Error)
+    )
+    consoleSpy.mockRestore()
+  })
+
+  test("logs error when webhook returns non-ok status", async () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {})
+    mockFetch.mockResolvedValue({ ok: false, status: 403, text: () => Promise.resolve("Forbidden") })
+
+    await sendIncidentSlack({
+      siteName: "Main Website",
+      siteUrl: "https://example.com",
+      error: null,
+      incidentId: "inc-1",
+      webhookUrls: ["https://hooks.slack.com/services/T00/B00/xxx"],
+    })
+
+    expect(consoleSpy).toHaveBeenCalledWith("Slack webhook returned", 403)
+    consoleSpy.mockRestore()
+  })
+
+  test("omits error line when error is null", async () => {
+    mockFetch.mockResolvedValue({ ok: true, text: () => Promise.resolve("") })
+
+    await sendIncidentSlack({
+      siteName: "Main Website",
+      siteUrl: "https://example.com",
+      error: null,
+      incidentId: "inc-1",
+      webhookUrls: ["https://hooks.slack.com/services/T00/B00/xxx"],
+    })
+
+    const body = JSON.parse(mockFetch.mock.calls[0][1].body)
+    expect(body.text).not.toContain("Error:")
   })
 })

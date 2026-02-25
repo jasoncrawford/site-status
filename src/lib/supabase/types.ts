@@ -26,7 +26,10 @@ export type Incident = {
 
 export type Contact = {
   id: string
-  email: string
+  type: 'email' | 'slack'
+  email: string | null
+  webhook_url: string | null
+  label: string | null
   created_at: string
 }
 
