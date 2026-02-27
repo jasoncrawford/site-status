@@ -1,9 +1,9 @@
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import type { Site, Check, Incident } from "@/lib/supabase/types"
-import { formatDuration } from "@/lib/format"
 import SiteList from "@/components/SiteList"
 import RealtimeStatusPage from "@/components/RealtimeStatusPage"
+import LiveDuration from "@/components/LiveDuration"
 
 export const revalidate = 0
 
@@ -101,7 +101,7 @@ export default async function StatusPage() {
                     className="text-[13px] font-semibold"
                     style={{ color: "#C4453C" }}
                   >
-                    Down for {formatDuration(incident.opened_at)}
+                    <LiveDuration since={incident.opened_at} />
                   </span>
                 </div>
                 <div className="mt-1.5 flex items-center gap-3 flex-wrap">
