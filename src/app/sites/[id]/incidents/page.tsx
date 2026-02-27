@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import type { Site, Check, Incident } from "@/lib/supabase/types"
 import { LocalIncidentRange } from "@/components/LocalTime"
+import RealtimeSiteDetail from "@/components/RealtimeSiteDetail"
 
 export const revalidate = 0
 
@@ -45,6 +46,7 @@ export default async function SiteIncidentsPage({
       className="max-w-[820px] mx-auto"
       style={{ padding: "32px 24px 80px" }}
     >
+      <RealtimeSiteDetail siteId={id} />
       <div className="mb-7">
         <Link
           href={`/sites/${site.id}`}

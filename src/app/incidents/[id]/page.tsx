@@ -6,6 +6,7 @@ import CheckLogTable from "@/components/CheckLogTable"
 import { LocalDateTime } from "@/components/LocalTime"
 import { resolveIncident } from "./actions"
 import ActionForm from "@/components/ActionForm"
+import RealtimeIncidentDetail from "@/components/RealtimeIncidentDetail"
 
 export const revalidate = 0
 
@@ -62,6 +63,7 @@ export default async function IncidentDetailPage({
 
   return (
     <main className="max-w-[720px] mx-auto" style={{ padding: "32px 24px 64px" }}>
+      <RealtimeIncidentDetail siteId={incident.site_id} incidentId={id} />
       <div className="mb-7">
         <Link
           href={`/sites/${incident.site_id}`}
