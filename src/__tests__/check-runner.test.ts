@@ -59,8 +59,10 @@ describe('POST /api/checks/run', () => {
   test('returns 500 when sites query fails', async () => {
     mockFrom.mockReturnValue({
       select: vi.fn().mockReturnValue({
-        data: null,
-        error: { message: 'connection error' },
+        is: vi.fn().mockReturnValue({
+          data: null,
+          error: { message: 'connection error' },
+        }),
       }),
     })
 
@@ -78,8 +80,10 @@ describe('POST /api/checks/run', () => {
   test('returns empty result when no sites exist', async () => {
     mockFrom.mockReturnValue({
       select: vi.fn().mockReturnValue({
-        data: [],
-        error: null,
+        is: vi.fn().mockReturnValue({
+          data: [],
+          error: null,
+        }),
       }),
     })
 
@@ -98,7 +102,7 @@ describe('POST /api/checks/run', () => {
 
     mockFrom.mockImplementation((table: string) => {
       if (table === 'sites') {
-        return { select: () => ({ data: [site], error: null }) }
+        return { select: () => ({ is: () => ({ data: [site], error: null }) }) }
       }
       if (table === 'checks') {
         return {
@@ -178,7 +182,7 @@ describe('POST /api/checks/run', () => {
 
     mockFrom.mockImplementation((table: string) => {
       if (table === 'sites') {
-        return { select: () => ({ data: [site], error: null }) }
+        return { select: () => ({ is: () => ({ data: [site], error: null }) }) }
       }
       if (table === 'checks') {
         return {
@@ -239,7 +243,7 @@ describe('POST /api/checks/run', () => {
 
     mockFrom.mockImplementation((table: string) => {
       if (table === 'sites') {
-        return { select: () => ({ data: [site], error: null }) }
+        return { select: () => ({ is: () => ({ data: [site], error: null }) }) }
       }
       if (table === 'checks') {
         return {
@@ -316,7 +320,7 @@ describe('POST /api/checks/run', () => {
 
     mockFrom.mockImplementation((table: string) => {
       if (table === 'sites') {
-        return { select: () => ({ data: [site], error: null }) }
+        return { select: () => ({ is: () => ({ data: [site], error: null }) }) }
       }
       if (table === 'checks') {
         return {
@@ -387,7 +391,7 @@ describe('POST /api/checks/run', () => {
 
     mockFrom.mockImplementation((table: string) => {
       if (table === 'sites') {
-        return { select: () => ({ data: [site], error: null }) }
+        return { select: () => ({ is: () => ({ data: [site], error: null }) }) }
       }
       if (table === 'checks') {
         return { insert: mockInsert }
@@ -423,7 +427,7 @@ describe('POST /api/checks/run', () => {
 
     mockFrom.mockImplementation((table: string) => {
       if (table === 'sites') {
-        return { select: () => ({ data: [site1, site2], error: null }) }
+        return { select: () => ({ is: () => ({ data: [site1, site2], error: null }) }) }
       }
       if (table === 'checks') {
         return {
@@ -463,7 +467,7 @@ describe('POST /api/checks/run', () => {
 
     mockFrom.mockImplementation((table: string) => {
       if (table === 'sites') {
-        return { select: () => ({ data: [site], error: null }) }
+        return { select: () => ({ is: () => ({ data: [site], error: null }) }) }
       }
       if (table === 'checks') {
         return {
@@ -520,8 +524,10 @@ describe('GET /api/checks/run (Vercel cron)', () => {
   test('GET handler works identically to POST (used by Vercel cron)', async () => {
     mockFrom.mockReturnValue({
       select: vi.fn().mockReturnValue({
-        data: [],
-        error: null,
+        is: vi.fn().mockReturnValue({
+          data: [],
+          error: null,
+        }),
       }),
     })
 

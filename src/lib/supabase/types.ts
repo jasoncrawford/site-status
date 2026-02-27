@@ -3,6 +3,7 @@ export type Site = {
   name: string
   url: string
   position: number
+  archived_at: string | null
   created_at: string
 }
 

@@ -26,7 +26,7 @@ vi.mock("@/lib/supabase/server", () => ({
     }),
 }))
 
-import { addSite, editSite, deleteSite, reorderSites } from "@/app/sites/actions"
+import { addSite, editSite, archiveSite, reorderSites } from "@/app/sites/actions"
 
 describe("addSite action", () => {
   beforeEach(() => {
@@ -52,7 +52,8 @@ describe("addSite action", () => {
     const mockSingle = vi.fn().mockResolvedValue({ data: { position: 2 } })
     const mockLimit = vi.fn().mockReturnValue({ single: mockSingle })
     const mockOrder = vi.fn().mockReturnValue({ limit: mockLimit })
-    const mockSelect = vi.fn().mockReturnValue({ order: mockOrder })
+    const mockIs = vi.fn().mockReturnValue({ order: mockOrder })
+    const mockSelect = vi.fn().mockReturnValue({ is: mockIs })
     mockFrom.mockImplementation((table: string) => {
       // First call: select max position; second call: insert
       if (mockFrom.mock.calls.length <= 1) {
@@ -140,7 +141,7 @@ describe("editSite action", () => {
   })
 })
 
-describe("deleteSite action", () => {
+describe("archiveSite action", () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -148,20 +149,23 @@ describe("deleteSite action", () => {
   test("redirects unauthenticated users to login", async () => {
     mockGetUser.mockResolvedValue({ data: { user: null } })
 
-    await expect(deleteSite("site-1")).rejects.toThrow("NEXT_REDIRECT:/login")
+    await expect(archiveSite("site-1")).rejects.toThrow("NEXT_REDIRECT:/login")
   })
 
-  test("deletes site for authenticated users", async () => {
+  test("archives site for authenticated users", async () => {
     mockGetUser.mockResolvedValue({
       data: { user: { id: "user-1" } },
     })
 
     const mockEq = vi.fn().mockReturnValue({ error: null })
-    const mockDelete = vi.fn().mockReturnValue({ eq: mockEq })
-    mockFrom.mockReturnValue({ delete: mockDelete })
+    const mockUpdate = vi.fn().mockReturnValue({ eq: mockEq })
+    mockFrom.mockReturnValue({ update: mockUpdate })
 
-    await deleteSite("site-1")
+    await archiveSite("site-1")
     expect(mockFrom).toHaveBeenCalledWith("sites")
+    expect(mockUpdate).toHaveBeenCalledWith({
+      archived_at: expect.any(String),
+    })
     expect(mockEq).toHaveBeenCalledWith("id", "site-1")
   })
 })
