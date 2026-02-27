@@ -11,6 +11,15 @@ test.afterEach(async ({ adminClient }) => {
       .eq("id", renamed.id);
   }
 
+  // Unarchive the seeded site if it was archived during a test
+  const seeded = sites?.find((s) => s.name === "E2E Test Site");
+  if (seeded) {
+    await adminClient
+      .from("sites")
+      .update({ archived_at: null })
+      .eq("id", seeded.id);
+  }
+
   // Clean up any extra sites created during tests (keep the seeded one)
   for (const site of sites ?? []) {
     if (site.name !== "E2E Test Site" && site.name !== "Renamed Site") {
@@ -96,30 +105,30 @@ test("site detail Edit button opens edit dialog", async ({ page, testData }) => 
   await expect(dialog.getByRole("button", { name: "Save" })).toBeVisible();
 });
 
-test("deletes a site with confirmation", async ({ page, adminClient }) => {
-  // First create a site to delete
+test("archives a site with confirmation", async ({ page, adminClient }) => {
+  // First create a site to archive
   await adminClient
     .from("sites")
-    .insert({ name: "Site To Delete", url: "https://example.com/delete" });
+    .insert({ name: "Site To Archive", url: "https://example.com/archive" });
 
   await page.goto("/");
-  await expect(page.getByText("Site To Delete")).toBeVisible();
+  await expect(page.getByText("Site To Archive")).toBeVisible();
 
   // Hover and click edit
-  const siteCard = page.locator(".group").filter({ hasText: "Site To Delete" });
+  const siteCard = page.locator(".group").filter({ hasText: "Site To Archive" });
   await siteCard.hover();
   await siteCard.getByTitle("Edit site").click({ force: true });
 
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
 
-  // Click Delete — should show confirmation
-  await dialog.getByRole("button", { name: "Delete" }).click();
-  await expect(dialog.getByText("Delete?")).toBeVisible();
+  // Click Archive — should show confirmation
+  await dialog.getByRole("button", { name: "Archive" }).click();
+  await expect(dialog.getByText("Archive?")).toBeVisible();
 
-  // Confirm deletion
+  // Confirm archiving
   await dialog.getByRole("button", { name: "Yes" }).click();
 
   await expect(dialog).not.toBeVisible();
-  await expect(page.getByText("Site To Delete")).not.toBeVisible();
+  await expect(page.getByText("Site To Archive")).not.toBeVisible();
 });
