@@ -33,7 +33,7 @@ export async function sendInvitation(formData: FormData) {
 
   if (error) return { error: `Failed to create invitation: ${error.message}` }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://status.rootsofprogress.org"
+  const appUrl = process.env.APP_URL || "https://status.rootsofprogress.org"
   const inviteLink = `${appUrl}/invite/${token}`
   const fromAddress = process.env.RESEND_FROM_EMAIL || "alerts@status.rootsofprogress.org"
 

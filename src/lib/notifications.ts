@@ -23,7 +23,7 @@ export async function sendIncidentEmail({
 }: IncidentEmailParams) {
   if (contactEmails.length === 0) return
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://status.rootsofprogress.org"
+  const appUrl = process.env.APP_URL || "https://status.rootsofprogress.org"
   const incidentLink = `${appUrl}/incidents/${incidentId}`
 
   const subject = `[Down] ${siteName} is not responding`
@@ -65,7 +65,7 @@ export async function sendIncidentSlack({
 }: IncidentSlackParams) {
   if (webhookUrls.length === 0) return
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://status.rootsofprogress.org"
+  const appUrl = process.env.APP_URL || "https://status.rootsofprogress.org"
   const incidentLink = `${appUrl}/incidents/${incidentId}`
 
   const text = [
