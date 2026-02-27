@@ -16,6 +16,7 @@ async function handleCheckRun(request: NextRequest) {
   const { data: sites, error: sitesError } = await supabase
     .from('sites')
     .select('*')
+    .is('archived_at', null)
 
   if (sitesError || !sites) {
     return NextResponse.json({ error: 'Failed to fetch sites' }, { status: 500 })

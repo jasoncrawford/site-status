@@ -1,7 +1,7 @@
 "use client"
 
 import { useId, useRef, useState } from "react"
-import { addSite, editSite, deleteSite } from "@/app/sites/actions"
+import { addSite, editSite, archiveSite } from "@/app/sites/actions"
 import { useErrorDialog } from "@/components/ErrorDialog"
 
 export default function SiteFormDialog({
@@ -19,7 +19,7 @@ export default function SiteFormDialog({
 }) {
   const id = useId()
   const dialogRef = useRef<HTMLDialogElement>(null)
-  const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [confirmingArchive, setConfirmingDelete] = useState(false)
   const { showError } = useErrorDialog()
 
   function open() {
@@ -144,7 +144,7 @@ export default function SiteFormDialog({
               >
                 Cancel
               </button>
-              {mode === "edit" && !confirmingDelete && (
+              {mode === "edit" && !confirmingArchive && (
                 <button
                   type="button"
                   onClick={() => setConfirmingDelete(true)}
@@ -155,19 +155,19 @@ export default function SiteFormDialog({
                     border: "1px solid #E8E4DF",
                   }}
                 >
-                  Delete
+                  Archive
                 </button>
               )}
-              {mode === "edit" && confirmingDelete && (
+              {mode === "edit" && confirmingArchive && (
                 <span
                   className="ml-auto flex items-center gap-2 text-sm"
                   style={{ color: "#C4453C" }}
                 >
-                  Delete?
+                  Archive?
                   <button
                     type="button"
                     onClick={async () => {
-                      const result = await deleteSite(siteId!)
+                      const result = await archiveSite(siteId!)
                       if (result?.error) {
                         showError(result.error)
                       } else {

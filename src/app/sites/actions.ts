@@ -20,6 +20,7 @@ export async function addSite(formData: FormData) {
   const { data: maxRow } = await supabase
     .from("sites")
     .select("position")
+    .is("archived_at", null)
     .order("position", { ascending: false })
     .limit(1)
     .single()
@@ -50,7 +51,7 @@ export async function editSite(siteId: string, formData: FormData) {
   revalidatePath(`/sites/${siteId}`)
 }
 
-export async function deleteSite(siteId: string) {
+export async function archiveSite(siteId: string) {
   const supabase = await createClient()
   const {
     data: { user },
@@ -58,8 +59,11 @@ export async function deleteSite(siteId: string) {
 
   if (!user) redirect("/login")
 
-  const { error } = await supabase.from("sites").delete().eq("id", siteId)
-  if (error) return { error: `Failed to delete site: ${error.message}` }
+  const { error } = await supabase
+    .from("sites")
+    .update({ archived_at: new Date().toISOString() })
+    .eq("id", siteId)
+  if (error) return { error: `Failed to archive site: ${error.message}` }
   revalidatePath("/")
 }
 

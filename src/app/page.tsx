@@ -16,6 +16,7 @@ async function getStatusData() {
   const { data: sites } = await supabase
     .from("sites")
     .select("*")
+    .is("archived_at", null)
     .order("position")
 
   const { data: openIncidents } = await supabase
@@ -43,9 +44,13 @@ async function getStatusData() {
     data: { user },
   } = await supabase.auth.getUser()
 
+  const activeIncidents = ((openIncidents ?? []) as IncidentWithSite[]).filter(
+    (i) => !i.site?.archived_at
+  )
+
   return {
     sites: sitesWithChecks,
-    incidents: (openIncidents ?? []) as IncidentWithSite[],
+    incidents: activeIncidents,
     isAdmin: !!user,
   }
 }
