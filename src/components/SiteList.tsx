@@ -210,7 +210,7 @@ export default function SiteList({
   const { showError } = useErrorDialog()
 
   // Sync local state when server data changes (after add/edit/delete revalidation)
-  const serverKey = initialSites.map((s) => `${s.id}:${s.name}:${s.url}`).join("|")
+  const serverKey = initialSites.map((s) => `${s.id}:${s.name}:${s.url}:${s.lastCheck?.checked_at ?? ""}:${s.lastCheck?.status ?? ""}`).join("|")
   const prevServerKey = useRef(serverKey)
   if (serverKey !== prevServerKey.current) {
     prevServerKey.current = serverKey

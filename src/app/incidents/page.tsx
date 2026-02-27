@@ -2,6 +2,7 @@ import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import type { Site, Check, Incident } from "@/lib/supabase/types"
 import { LocalIncidentRange } from "@/components/LocalTime"
+import RealtimeAllIncidents from "@/components/RealtimeAllIncidents"
 
 export const revalidate = 0
 
@@ -27,6 +28,7 @@ export default async function AllIncidentsPage() {
       className="max-w-[960px] mx-auto"
       style={{ padding: "36px 24px 80px" }}
     >
+      <RealtimeAllIncidents />
       <div className="mb-7">
         <Link
           href="/"
