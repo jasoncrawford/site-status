@@ -1,6 +1,7 @@
 "use client"
 
 import { useRef, useState } from "react"
+import { useTick } from "@/hooks/useTick"
 import Link from "next/link"
 import {
   DndContext,
@@ -208,6 +209,7 @@ export default function SiteList({
 }) {
   const [sites, setSites] = useState(initialSites)
   const { showError } = useErrorDialog()
+  useTick(15_000)
 
   // Sync local state when server data changes (after add/edit/delete revalidation)
   const serverKey = initialSites.map((s) => `${s.id}:${s.name}:${s.url}:${s.lastCheck?.checked_at ?? ""}:${s.lastCheck?.status ?? ""}`).join("|")
