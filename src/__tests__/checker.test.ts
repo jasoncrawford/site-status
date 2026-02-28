@@ -81,6 +81,10 @@ describe('isSoftFailure', () => {
     expect(isSoftFailure(null, 'Connection timeout')).toBe(true)
   })
 
+  test('fetch failed is a soft failure', () => {
+    expect(isSoftFailure(null, 'fetch failed')).toBe(true)
+  })
+
   test('HTTP 500 is a hard failure', () => {
     expect(isSoftFailure(500, 'HTTP 500')).toBe(false)
   })
