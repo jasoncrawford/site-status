@@ -25,4 +25,5 @@ next-env.d.ts
 
 # local settings
 .claude/settings.local.json
+.claude/worktrees
 .vercel
