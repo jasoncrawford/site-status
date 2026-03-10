@@ -1,0 +1,13 @@
+# Supabase
+evviomukranebwbwgesa.supabase.co
+supabase.co
+supabase.com
+api.supabase.com
+
+# Vercel
+vercel.com
+api.vercel.com
+vercel.live
+
+# Resend
+api.resend.com
